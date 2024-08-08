@@ -43,9 +43,10 @@ def extraer_datos(query, total_productos):
 
 @app.get("/callback")
 async def callback(request: Request):
+
     code = request.query_params.get('code')
     if not code:
-        return {"error": "No code found"}
+        return {"error": "No code found :/"}
 
     # Intercambia el código por un Access Token
     url = "https://api.mercadolibre.com/oauth/token"
@@ -81,3 +82,8 @@ async def consultar_productos():
     
     # Devuelve el archivo como respuesta
     return FileResponse(archivo_excel, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename=archivo_excel)
+
+@app.get("/")
+async def root(response: Response = Response()):
+    response.status_code = 403
+    return 'holaaa'
