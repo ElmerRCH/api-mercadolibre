@@ -8,8 +8,11 @@ code=TG-66b54aaaf8929c0001931ecd-191633463
     "expires_in": 21600,
     "scope": "read",
     "user_id": 191633463
-    
+
 }
+
+ "q": "urrea",  # Palabra clave de búsqueda
+        "seller_id": "344549261",  # ID del vendedor
 
 UjA6P4w0a0FuNWix3lj8TN8y0VIBXo3u
 5981985119336238

@@ -6,7 +6,7 @@ import requests
 app = FastAPI()
 
 # Configura tus credenciales de la API
-ACCESS_TOKEN = 'tu_access_token'
+ACCESS_TOKEN = 'APP_USR-5981985119336238-080818-40e76aabdda91a019cec7bba21665c5d-191633463'
 
 # Define una función para buscar productos en Mercado Libre
 def buscar_productos(query, limit=50, offset=0):
@@ -69,6 +69,7 @@ async def callback(request: Request):
    
 @app.get("/consultar-productos")
 async def consultar_productos():
+
     total_productos = 100
     query = 'https://listado.mercadolibre.com.mx/bosch_CustId_344549261_NoIndex_True#D[A:bosch,on]'
     # Extrae los datos
@@ -82,6 +83,57 @@ async def consultar_productos():
     
     # Devuelve el archivo como respuesta
     return FileResponse(archivo_excel, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename=archivo_excel)
+
+
+@app.get("/productos")
+async def listar_productos(query: str = "all", limit: int = 255 ):
+    url = "https://api.mercadolibre.com/sites/MLM/search"
+    
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
+
+    all_products = []
+    offset = 0
+    while len(all_products) < limit:
+        params = {
+            
+            "limit": 50,  # Número de resultados por página
+            "offset": offset,  # Página de resultados
+            "q": "urrea",  # Palabra clave de búsqueda
+            "seller_id": "344549261",  # ID del vendedor
+        }
+
+        response = requests.get(url, headers=headers, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+            results = data["results"]
+
+            # Extraer la información relevante
+            for item in results:
+                all_products.append({
+                    "seller_id": item["seller"]["id"],
+                    "nombre_producto": item["title"],
+                    "precio": item["price"]
+                })
+
+            # Verifica si hay más resultados
+            if len(results) < params["limit"]:
+                break  # Salir si no hay más resultados
+            
+            # Incrementar el offset para la siguiente página
+            offset += params["limit"]
+        else:
+            raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
+
+    # Limita la cantidad total de productos devueltos al límite solicitado
+
+    return {
+        "cantidad":len(all_products[:limit]),
+        "productos": all_products[:limit]
+        }
+
 
 @app.get("/")
 async def root(response: Response = Response()):
