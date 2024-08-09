@@ -1,101 +1,58 @@
-from fastapi import FastAPI, Response,Request
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Response,HTTPException
+# from fastapi.responses import FileResponse
 from util.util_api import get_model_product
+from enums.api_data import Url,Paths,Excel
+from concurrent.futures import ThreadPoolExecutor
+
 import pandas as pd
 import requests
 import openpyxl
-
 
 app = FastAPI()
 
 # Configura tus credenciales de la API
 ACCESS_TOKEN = 'APP_USR-5981985119336238-080912-1a04a9b36b2697af2620ece436ccbf4c-191633463'
+url = Url.SEARCH_PRODUCT.value
+HEADERS = {
+    "Authorization": f"Bearer {ACCESS_TOKEN}"
+}
 
-# Define una función para buscar productos en Mercado Libre
-def buscar_productos(query, limit=50, offset=0):
-    url = 'https://api.mercadolibre.com/sites/MLA/search'
-    
+# Función para buscar precios en Mercado Libre
+def buscar_precios(nombre_producto: str):
+    if pd.isna(nombre_producto):
+        return {"nombre_producto": nombre_producto, "precios": [{"error": "Nombre de producto vacío"}]}
+
     params = {
-        'q': query,
-        'access_token': ACCESS_TOKEN,
-        'limit': limit,
-        'offset': offset
-    }
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        response.raise_for_status()
-    
-# Define una función para extraer los datos y escribirlos en un DataFrame de pandas
-def extraer_datos(query, total_productos):
-    productos = []
-    limit = 50
-    for offset in range(0, total_productos, limit):
-        resultados = buscar_productos(query, limit=limit, offset=offset)
-        for resultado in resultados['results']:
-            producto = {
-                'codigo': resultado['id'],
-                'nombre': resultado['title'],
-                'cantidad': resultado['available_quantity'],
-                'ventas': resultado['sold_quantity'],
-                'precio': resultado['price']
-            }
-            productos.append(producto)
-    return pd.DataFrame(productos)
-
-@app.get("/callback")
-async def callback(request: Request):
-
-    code = request.query_params.get('code')
-    if not code:
-        return {"error": "No code found :/"}
-
-    # Intercambia el código por un Access Token
-    url = "https://api.mercadolibre.com/oauth/token"
-    
-    data = {
-        'grant_type': 'authorization_code',
-        'client_id': '5981985119336238',
-        'client_secret': 'UjA6P4w0a0FuNWix3lj8TN8y0VIBXo3u',
-        'code': code,
-        'redirect_uri': 'http://localhost:8000/callback'
+        "q": nombre_producto,
+        "limit": 10  # Puedes ajustar el número de resultados
     }
     
-    response = requests.post(url, data=data)
+    response = requests.get(url, headers=HEADERS, params=params)
+    
     if response.status_code == 200:
-        token_info = response.json()
-        access_token = token_info['access_token']
-        return {"access_token": access_token}
+        data = response.json()
+        if data["results"]:
+            # Obtener los precios de los productos encontrados
+            precios = [
+                {
+                    "nombre": item["title"],
+                    "precio": item["price"],
+                    "vendedor": item["seller"]["nickname"]
+                }
+                for item in data["results"]
+            ]
+        else:
+            precios = [{"error": "No se encontraron productos"}]
     else:
-        return {"error": "Failed to get access token", "details": response.json()}
-   
-@app.get("/consultar-productos")
-async def consultar_productos():
-
-    total_productos = 100
-    query = 'https://listado.mercadolibre.com.mx/bosch_CustId_344549261_NoIndex_True#D[A:bosch,on]'
-    # Extrae los datos
-    df_productos = extraer_datos(query, total_productos)
+        precios = [{"error": "Error en la solicitud a Mercado Libre"}]
     
-    return 'echo'
-    
-    # Guarda los datos en un archivo de Excel
-    archivo_excel = 'productos_mercadolibre.xlsx'
-    df_productos.to_excel(archivo_excel, index=False)
-    
-    # Devuelve el archivo como respuesta
-    return FileResponse(archivo_excel, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename=archivo_excel)
+    return {"nombre_producto": nombre_producto, "precios": precios}
 
 
 @app.get("/productos")
 async def listar_productos(query: str = "all", limit: int = 260 ):
-    url = "https://api.mercadolibre.com/sites/MLM/search"
-    
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}"
-    }
 
+  
     all_products = []
     offset = 0
     while len(all_products) < limit:
@@ -107,7 +64,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
             "seller_id": "344549261",  # ID del vendedor
         }
 
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=HEADERS, params=params)
         if response.status_code == 200:
             data = response.json()
             results = data["results"]
@@ -132,7 +89,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
             offset += params["limit"]
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
-        
+      
     #break
     #return item 
     # Limitar la cantidad total de productos devueltos al límite solicitado
@@ -141,14 +98,17 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
     # Crear un archivo Excel y escribir los datos
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Productos"
 
+    NAME_EXCEL = "URREA"
+
+    ws.title = NAME_EXCEL
+    
     # Escribir los encabezados
     headers = ["CANT.", "CODIGO", "PRODUCTO", "VENTAS", "PRECIO","P.COMP","P.COSTO"]
     ws.append(headers)
 
     # Escribir los datos
-    for idx, producto in enumerate(productos_a_escribir, start=1):
+    for _, producto in enumerate(productos_a_escribir, start=1):
         ws.append([
             0,
             producto["codigo_producto"],
@@ -158,17 +118,65 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
             0,
             0,
         ])
-
+    	
     # Guardar el archivo Excel
-    nombre_archivo = "productos.xlsx"
-    wb.save(nombre_archivo)
+    nombre_archivo = f"{NAME_EXCEL}.xlsx"
+    
+    wb.save(f"{Paths.PATH_EXCEL.value}{nombre_archivo}")
+
     return item
-    return {
-        "cantidad":len(all_products[:limit]),
-        "productos": all_products[:limit]
-        }
+ 
+@app.get("/precios")
+async def comparar_precios():
+    try:
+        # Leer el archivo Excel
+        df = pd.read_excel("data_excel/URREA.xlsx")
 
+        # Verificar si la columna con el nombre del producto existe
+        if Excel.NOMBRE_PRODUCTO.value not in df.columns:
+            raise HTTPException(status_code=400, detail="La columna 'nombre_producto' no se encuentra en el archivo Excel.")
 
+        # Lista para almacenar los resultados
+        resultados = []
+        
+        for index, row in df.iterrows():
+            nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
+            if not pd.isna(nombre_producto):  # Asegurarse de que el nombre del producto no esté vacío
+                
+                # Hacer una búsqueda en Mercado Libre por el nombre del producto
+                params = {
+                    "q": nombre_producto,
+                    "limit": 10  # Puedes ajustar el número de resultados
+                }
+        
+                response = requests.get(url, headers=HEADERS, params=params)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data["results"]:
+                        # Obtener los precios de los productos encontrados
+                        precios = [
+                            {
+                                "nombre": item["title"],
+                                "precio": item["price"],
+                                "vendedor": item["seller"]["nickname"]
+                            }
+                            for item in data["results"]
+                        ]
+                    else:
+                        precios = [{"error": "No se encontraron productos"}]
+                else:
+                    precios = [{"error": "Error en la solicitud a Mercado Libre"}]
+                
+                resultados.append({"nombre_producto": nombre_producto, "precios": precios})
+            
+
+        return {"resultados": resultados}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
+    
+    
 @app.get("/")
 async def root(response: Response = Response()):
     response.status_code = 403
