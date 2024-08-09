@@ -11,7 +11,7 @@ import openpyxl
 app = FastAPI()
 
 # Configura tus credenciales de la API
-ACCESS_TOKEN = 'APP_USR-5981985119336238-080912-1a04a9b36b2697af2620ece436ccbf4c-191633463'
+ACCESS_TOKEN = 'APP_USR-5981985119336238-080918-ef40c64eab38d325a50ec6e864da2a8b-191633463'
 url = Url.SEARCH_PRODUCT.value
 HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
@@ -47,6 +47,40 @@ def buscar_precios(nombre_producto: str):
         precios = [{"error": "Error en la solicitud a Mercado Libre"}]
     
     return {"nombre_producto": nombre_producto, "precios": precios}
+
+
+
+def comparar_y_actualizar_precio(row):
+
+    nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
+    precio_mio = row[Excel.PRECIO.value]
+
+    if pd.isna(nombre_producto):
+        return {"error": "Nombre de producto vacío"}
+
+    params = {
+        "q": nombre_producto,
+        "limit": 10  # Puedes ajustar el número de resultados
+    }
+    
+    response = requests.get(url, headers=HEADERS, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        precios = [
+            item["price"] for item in data["results"] if item["price"] < precio_mio
+        ]
+        
+        # Actualizar la columna P.COMP según la comparación
+        if precios:
+            row['P.COMP'] = min(precios)  # El precio más bajo encontrado
+        else:
+            row['P.COMP'] = '-'  # Si no hay un precio más bajo, se pone un '-'
+        
+        return row
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Error en la solicitud a Mercado Libre")
+
 
 
 @app.get("/productos")
@@ -130,52 +164,28 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 async def comparar_precios():
     try:
         # Leer el archivo Excel
-        df = pd.read_excel("data_excel/URREA.xlsx")
+        df = pd.read_excel('data_excel/URREA.xlsx')
 
-        # Verificar si la columna con el nombre del producto existe
-        if Excel.NOMBRE_PRODUCTO.value not in df.columns:
-            raise HTTPException(status_code=400, detail="La columna 'nombre_producto' no se encuentra en el archivo Excel.")
+        # Verificar si las columnas necesarias existen
+        required_columns = [Excel.NOMBRE_PRODUCTO.value, Excel.PRECIO.value,Excel.PRECIO_COMPETENCIA.value]
+        for col in required_columns:
+            if col not in df.columns:
+                raise HTTPException(status_code=400, detail=f"La columna '{col}' no se encuentra en el archivo Excel.")
 
-        # Lista para almacenar los resultados
-        resultados = []
-        
-        for index, row in df.iterrows():
-            nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
-            if not pd.isna(nombre_producto):  # Asegurarse de que el nombre del producto no esté vacío
-                
-                # Hacer una búsqueda en Mercado Libre por el nombre del producto
-                params = {
-                    "q": nombre_producto,
-                    "limit": 10  # Puedes ajustar el número de resultados
-                }
-        
-                response = requests.get(url, headers=HEADERS, params=params)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    if data["results"]:
-                        # Obtener los precios de los productos encontrados
-                        precios = [
-                            {
-                                "nombre": item["title"],
-                                "precio": item["price"],
-                                "vendedor": item["seller"]["nickname"]
-                            }
-                            for item in data["results"]
-                        ]
-                    else:
-                        precios = [{"error": "No se encontraron productos"}]
-                else:
-                    precios = [{"error": "Error en la solicitud a Mercado Libre"}]
-                
-                resultados.append({"nombre_producto": nombre_producto, "precios": precios})
-            
+        # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            results = list(executor.map(comparar_y_actualizar_precio, [row for _, row in df.iterrows()]))
 
-        return {"resultados": resultados}
-    
+        # Actualizar el DataFrame con los resultados
+        df_updated = pd.DataFrame(results)
+
+        # Guardar el DataFrame actualizado en un nuevo archivo Excel
+        df_updated.to_excel("productos_actualizados.xlsx", index=False)
+
+        return {"status": "Archivo actualizado exitosamente", "file": "productos_actualizados.xlsx"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
-    
     
 @app.get("/")
 async def root(response: Response = Response()):
