@@ -2,6 +2,7 @@ from fastapi import FastAPI, Response,Request
 from fastapi.responses import FileResponse
 import pandas as pd
 import requests
+import openpyxl
 
 app = FastAPI()
 
@@ -113,11 +114,12 @@ async def listar_productos(query: str = "all", limit: int = 255 ):
             # Extraer la información relevante
             for item in results:
                 all_products.append({
-                    "seller_id": item["seller"]["id"],
+                    "codigo_producto": item["id"],
                     "nombre_producto": item["title"],
+                    "ventas": item.get("sold_quantity", 0),
                     "precio": item["price"]
                 })
-
+    
             # Verifica si hay más resultados
             if len(results) < params["limit"]:
                 break  # Salir si no hay más resultados
@@ -127,7 +129,31 @@ async def listar_productos(query: str = "all", limit: int = 255 ):
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
 
-    # Limita la cantidad total de productos devueltos al límite solicitado
+    # Limitar la cantidad total de productos devueltos al límite solicitado
+    productos_a_escribir = all_products[:limit]
+
+    # Crear un archivo Excel y escribir los datos
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Productos"
+
+    # Escribir los encabezados
+    headers = ["Cantidad", "Código del Producto", "Nombre del Producto", "Ventas", "Precio"]
+    ws.append(headers)
+
+    # Escribir los datos
+    for idx, producto in enumerate(productos_a_escribir, start=1):
+        ws.append([
+            idx,
+            producto["codigo_producto"],
+            producto["nombre_producto"],
+            producto["ventas"],
+            producto["precio"]
+        ])
+
+    # Guardar el archivo Excel
+    nombre_archivo = "productos.xlsx"
+    wb.save(nombre_archivo)
 
     return {
         "cantidad":len(all_products[:limit]),
