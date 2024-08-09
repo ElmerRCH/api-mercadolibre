@@ -1,13 +1,15 @@
 from fastapi import FastAPI, Response,Request
 from fastapi.responses import FileResponse
+from util.util_api import get_model_product
 import pandas as pd
 import requests
 import openpyxl
 
+
 app = FastAPI()
 
 # Configura tus credenciales de la API
-ACCESS_TOKEN = 'APP_USR-5981985119336238-080818-40e76aabdda91a019cec7bba21665c5d-191633463'
+ACCESS_TOKEN = 'APP_USR-5981985119336238-080912-1a04a9b36b2697af2620ece436ccbf4c-191633463'
 
 # Define una función para buscar productos en Mercado Libre
 def buscar_productos(query, limit=50, offset=0):
@@ -87,7 +89,7 @@ async def consultar_productos():
 
 
 @app.get("/productos")
-async def listar_productos(query: str = "all", limit: int = 255 ):
+async def listar_productos(query: str = "all", limit: int = 260 ):
     url = "https://api.mercadolibre.com/sites/MLM/search"
     
     headers = {
@@ -106,20 +108,22 @@ async def listar_productos(query: str = "all", limit: int = 255 ):
         }
 
         response = requests.get(url, headers=headers, params=params)
-
         if response.status_code == 200:
             data = response.json()
             results = data["results"]
 
             # Extraer la información relevante
             for item in results:
+                #break
                 all_products.append({
-                    "codigo_producto": item["id"],
+                   
+                    #"codigo_producto": item["attributes"][-1]["value_name"] if "attributes" in item and item["attributes"] else 0,
+                    "codigo_producto": get_model_product(item["attributes"]),
                     "nombre_producto": item["title"],
                     "ventas": item.get("sold_quantity", 0),
                     "precio": item["price"]
                 })
-    
+               
             # Verifica si hay más resultados
             if len(results) < params["limit"]:
                 break  # Salir si no hay más resultados
@@ -128,7 +132,9 @@ async def listar_productos(query: str = "all", limit: int = 255 ):
             offset += params["limit"]
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
-
+        
+    #break
+    #return item 
     # Limitar la cantidad total de productos devueltos al límite solicitado
     productos_a_escribir = all_products[:limit]
 
@@ -138,23 +144,25 @@ async def listar_productos(query: str = "all", limit: int = 255 ):
     ws.title = "Productos"
 
     # Escribir los encabezados
-    headers = ["Cantidad", "Código del Producto", "Nombre del Producto", "Ventas", "Precio"]
+    headers = ["CANT.", "CODIGO", "PRODUCTO", "VENTAS", "PRECIO","P.COMP","P.COSTO"]
     ws.append(headers)
 
     # Escribir los datos
     for idx, producto in enumerate(productos_a_escribir, start=1):
         ws.append([
-            idx,
+            0,
             producto["codigo_producto"],
             producto["nombre_producto"],
             producto["ventas"],
-            producto["precio"]
+            producto["precio"],
+            0,
+            0,
         ])
 
     # Guardar el archivo Excel
     nombre_archivo = "productos.xlsx"
     wb.save(nombre_archivo)
-
+    return item
     return {
         "cantidad":len(all_products[:limit]),
         "productos": all_products[:limit]
