@@ -8,17 +8,19 @@ import pandas as pd
 import requests
 import openpyxl
 from openpyxl.styles import NamedStyle
+import re
 
 app = FastAPI()
 
 # Configura tus credenciales de la API
 ACCESS_TOKEN = 'APP_USR-5981985119336238-081212-a777b364b903f9c5ab79156f793b012d-191633463'
 url = Url.SEARCH_PRODUCT.value
+
 HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
-MARCA = "urrea"
+MARCA = "hyundai"
 
 # Función para obtener el modelo del producto desde los atributos
 def get_model_from_attributes(attributes):
@@ -144,10 +146,14 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
     return item
 
 paths = [
-    "data_excel/bellota/bellota.xlsx",
-    "data_excel/urrea/urrea.xlsx",
-    "data_excel/gamo/gamo.xlsx",
-    "data_excel/bosch/bosch.xlsx"
+    # "data_excel/surtek/surtek.xlsx",
+    # "data_excel/dica/dica.xlsx",
+    "data_excel/hyundai/hyundai.xlsx",
+
+    #"data_excel/man/man.xlsx",
+    # "data_excel/urrea/urrea.xlsx",
+    # "data_excel/gamo/gamo.xlsx",
+    # "data_excel/bosch/bosch.xlsx"
 ]
 
 @app.get("/limpiar-repetidos-nombre")
@@ -174,7 +180,7 @@ async def limpiar_repetidos():
                 return group
 
             df = df.groupby('PRODUCTO').apply(process_duplicates).reset_index(drop=True)
-            
+
             # Guardar el archivo limpio
             df.to_excel(i, index=False)
 
@@ -182,7 +188,6 @@ async def limpiar_repetidos():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
-
 
 @app.get("/limpiar-repetidos-codigo")
 async def limpiar_repetidos():
@@ -211,8 +216,9 @@ async def listar_productos( limit: int = 260):
         # Leer el archivo Excel de Mercado Libre
         df_ml = pd.read_excel("data_excel/general/mercadolibre.xlsx")
         
+        patron = r'\b' + re.escape(MARCA) + r'\b'
         # Filtrar productos que contengan la palabra clave en su nombre
-        productos_filtrados = df_ml[df_ml['TITLE'].str.contains(MARCA, case=False, na=False)]
+        productos_filtrados = df_ml[df_ml['TITLE'].str.contains(patron, case=False, na=False)]
 
         # Limitar el número de productos a 'limit'
         productos_filtrados = productos_filtrados.head(limit)
