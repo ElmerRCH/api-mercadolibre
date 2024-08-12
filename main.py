@@ -21,6 +21,21 @@ HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
+
+paths = [
+    # "data_excel/surtek/surtek.xlsx",
+    # "data_excel/dica/dica.xlsx",
+    # "data_excel/hyundai/hyundai.xlsx",
+    # "data_excel/vianney/vianney.xlsx",
+    "data_excel/labomed/labomed.xlsx",
+
+    #"data_excel/man/man.xlsx",
+    # "data_excel/urrea/urrea.xlsx",
+    # "data_excel/gamo/gamo.xlsx",
+    # "data_excel/bosch/bosch.xlsx"
+]
+
+
 MARCA = "labomed"
 
 # Función para obtener el modelo del producto desde los atributos
@@ -146,18 +161,58 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 
     return item
 
-paths = [
-    # "data_excel/surtek/surtek.xlsx",
-    # "data_excel/dica/dica.xlsx",
-    # "data_excel/hyundai/hyundai.xlsx",
-    # "data_excel/vianney/vianney.xlsx",
-    "data_excel/labomed/labomed.xlsx",
+@app.get("/get-excel")
+async def listar_productos( limit: int = 260):
 
-    #"data_excel/man/man.xlsx",
-    # "data_excel/urrea/urrea.xlsx",
-    # "data_excel/gamo/gamo.xlsx",
-    # "data_excel/bosch/bosch.xlsx"
-]
+    try:
+        # Leer el archivo Excel de Mercado Libre
+        df_ml = pd.read_excel("data_excel/general/mercadolibre.xlsx")
+        
+        patron = r'\b' + re.escape(MARCA) + r'\b'
+        # Filtrar productos que contengan la palabra clave en su nombre
+        productos_filtrados = df_ml[df_ml[Excel.NOMBRE_PRODUCTO_ML.value].str.contains(patron, case=False, na=False)]
+
+        # Limitar el número de productos a 'limit'
+        productos_filtrados = productos_filtrados.head(limit)
+
+        # Crear un nuevo archivo Excel para guardar los datos filtrados
+        wb = openpyxl.Workbook()
+        ws = wb.active
+
+        ws.title = MARCA
+
+        # Escribir los encabezados
+        headers = [
+
+            Excel.CANTIDAD.value,
+            Excel.CODIGO.value,
+            Excel.NOMBRE_PRODUCTO.value,
+            Excel.PRECIO.value,
+            Excel.PRECIO_COMPETENCIA.value,
+            Excel.PRECIO_COSTO.value
+        ]
+        ws.append(headers)
+
+        # Escribir los datos
+        for index, row in productos_filtrados.iterrows():
+            ws.append([
+                row[Excel.QUANTITY_ML.value],
+                row[Excel.SKU_ML.value],
+                row[Excel.NOMBRE_PRODUCTO_ML.value],
+                0,
+                row[Excel.MARKETPLACE_PRICE.value],
+                0,  # P.COMP
+                0,  # P.COSTO
+            ])
+
+        # Guardar el archivo Excel
+        nombre_archivo = f"{MARCA}.xlsx"
+        wb.save(f"data_excel/{MARCA}/{MARCA}.xlsx")
+
+        return {"mensaje": "Archivo Excel generado exitosamente", "ruta": nombre_archivo}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
 
 @app.get("/limpiar-repetidos-nombre")
 async def limpiar_repetidos():
@@ -209,51 +264,6 @@ async def limpiar_repetidos():
 
         return {"mensaje": "Productos repetidos eliminados", "archivo_guardado": i}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
-
-@app.get("/get-excel")
-async def listar_productos( limit: int = 260):
-
-    try:
-        # Leer el archivo Excel de Mercado Libre
-        df_ml = pd.read_excel("data_excel/general/mercadolibre.xlsx")
-        
-        patron = r'\b' + re.escape(MARCA) + r'\b'
-        # Filtrar productos que contengan la palabra clave en su nombre
-        productos_filtrados = df_ml[df_ml['TITLE'].str.contains(patron, case=False, na=False)]
-
-        # Limitar el número de productos a 'limit'
-        productos_filtrados = productos_filtrados.head(limit)
-
-        # Crear un nuevo archivo Excel para guardar los datos filtrados
-        wb = openpyxl.Workbook()
-        ws = wb.active
-
-        ws.title = MARCA
-
-        # Escribir los encabezados
-        headers = ["CANT.", "CODIGO", "PRODUCTO", "VENTAS", "PRECIO", "P.COMP", "P.COSTO"]
-        ws.append(headers)
-
-        # Escribir los datos
-        for index, row in productos_filtrados.iterrows():
-            ws.append([
-                row["QUANTITY"],
-                row["SKU"],
-                row["TITLE"],
-                0,
-                row["MARKETPLACE_PRICE"],
-                0,  # P.COMP
-                0,  # P.COSTO
-            ])
-
-        # Guardar el archivo Excel
-        nombre_archivo = f"{MARCA}.xlsx"
-        wb.save(f"data_excel/{MARCA}/{MARCA}.xlsx")
-
-        return {"mensaje": "Archivo Excel generado exitosamente", "ruta": nombre_archivo}
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
 
