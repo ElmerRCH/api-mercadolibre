@@ -19,6 +19,7 @@ UjA6P4w0a0FuNWix3lj8TN8y0VIBXo3u
 
 https://fagalab.com.mx/
 
+# para solicitar codigo y obtener token.
 https://auth.mercadolibre.com.mx/authorization?response_type=code&client_id=5981985119336238&redirect_uri=https://fagalab.com.mx/
 
 https://auth.mercadolibre.com.mx/authorization?response_type=code&client_id=5981985119336238&redirect_uri=https://fagalab.com.mx/&code_challenge=$CODE_CHALLENGE&code_challenge_method=$CODE_METHOD
