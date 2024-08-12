@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import requests
 import openpyxl
-from openpyxl.styles import NamedStyle
+#from openpyxl.styles import NamedStyle
 import re
 
 app = FastAPI()
@@ -17,6 +17,7 @@ ACCESS_TOKEN = 'APP_USR-5981985119336238-081218-504c9538c9c37ce969c086cdd6c6e030
 url = Url.SEARCH_PRODUCT.value
 
 HEADERS = {
+    
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
@@ -306,7 +307,6 @@ async def actualizar_cantidad():
     df_tu_excel = pd.read_excel(tu_excel_path)
     df_mercadolibre = pd.read_excel(mercadolibre_excel_path, header=0)
 
-
     print('mi excel::::::',df_tu_excel.head())
     print('mercado libre::::::',df_mercadolibre.head())
 
@@ -331,7 +331,6 @@ async def actualizar_cantidad():
     df_tu_excel.to_excel(output_path, index=False)
 
     return {"mensaje": "Archivo Excel actualizado con éxito", "archivo_guardado_en": output_path}
-
 
 @app.get("/")
 async def root(response: Response = Response()):
