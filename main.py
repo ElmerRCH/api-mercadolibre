@@ -13,14 +13,14 @@ import re
 app = FastAPI()
 
 # Configura tus credenciales de la API
-ACCESS_TOKEN = 'APP_USR-5981985119336238-081212-a777b364b903f9c5ab79156f793b012d-191633463'
+ACCESS_TOKEN = 'APP_USR-5981985119336238-081218-504c9538c9c37ce969c086cdd6c6e030-191633463'
 url = Url.SEARCH_PRODUCT.value
 
 HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
-MARCA = "hyundai"
+MARCA = "labomed"
 
 # Función para obtener el modelo del producto desde los atributos
 def get_model_from_attributes(attributes):
@@ -148,7 +148,9 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 paths = [
     # "data_excel/surtek/surtek.xlsx",
     # "data_excel/dica/dica.xlsx",
-    "data_excel/hyundai/hyundai.xlsx",
+    # "data_excel/hyundai/hyundai.xlsx",
+    # "data_excel/vianney/vianney.xlsx",
+    "data_excel/labomed/labomed.xlsx",
 
     #"data_excel/man/man.xlsx",
     # "data_excel/urrea/urrea.xlsx",

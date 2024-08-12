@@ -29,3 +29,6 @@ surtek
 dica
 man
 hyundai
+
+vianney
+labomed
