@@ -8,9 +8,10 @@ from pandas import DataFrame
 import openpyxl
 
 class ExcelMLUtility:
+    
     marca = "vianney"
     path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
-    #orden importa
+    # orden importa
     headers = [
 
         Excel.CANTIDAD.value,
@@ -22,13 +23,12 @@ class ExcelMLUtility:
     ]
     
     # para limpiar de momento
-
     paths = [
         
         # "data_excel/surtek/surtek.xlsx",
         # "data_excel/dica/dica.xlsx",
         # "data_excel/hyundai/hyundai.xlsx",
-         "data_excel/vianney/vianney.xlsx",
+        "data_excel/vianney/vianney.xlsx",
         # "data_excel/labomed/labomed.xlsx",
         # "data_excel/man/man.xlsx",
         # "data_excel/urrea/urrea.xlsx",
@@ -50,7 +50,7 @@ class ExcelMLUtility:
         df_updated.to_excel(ExcelMLUtility.path, index=False)
 
     # Crear un nuevo archivo Excel para guardar datos
-    def crate_excel(productos_filtrados):
+    def create_excel(productos_filtrados):
 
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -114,7 +114,6 @@ class ExcelMLUtility:
                     
         return name_model
 
-
     def get_model_from_attributes(attributes):
         for attribute in attributes:
             if attribute["id"] == "MODEL":
@@ -169,7 +168,6 @@ class ExcelMLUtility:
             return row
         else:
             raise HTTPException(status_code=response.status_code, detail="Error en la solicitud a Mercado Libre")
-
 
     def search_price():
         return

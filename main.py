@@ -21,7 +21,6 @@ HEADERS = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
-
 MARCA = "urrea"
 
 # Función para obtener el modelo del producto desde los atributos
@@ -119,7 +118,7 @@ async def listar_productos( limit: int = 260):
 
         # Limitar el número de productos a 'limit'
         productos_filtrados = productos_filtrados.head(None)
-        nombre_archivo = ExcelMLUtility.crate_excel(productos_filtrados)
+        nombre_archivo = ExcelMLUtility.create_excel(productos_filtrados)
         return {"mensaje": "Archivo Excel generado exitosamente", "ruta": nombre_archivo}
 
     except Exception as e:
@@ -131,20 +130,18 @@ async def limpiar_repetidos():
     try:
        
         return {"mensaje":ExcelMLUtility.delete_data_repeat()}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
-
+    
 @app.get("/precios")
 async def comparar_precios():   
     try:
 
-       
         df = ExcelMLUtility.read_excel()
         
         # Verificar si las columnas necesarias existen
         required_columns = [
-
+            
             Excel.PRECIO.value,
             Excel.NOMBRE_PRODUCTO.value,
             Excel.PRECIO_COMPETENCIA.value,
@@ -165,7 +162,6 @@ async def comparar_precios():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
-
 
 @app.get("/")
 async def root(response: Response = Response()):
