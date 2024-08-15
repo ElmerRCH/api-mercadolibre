@@ -58,6 +58,29 @@ class ExcelMLUtility:
         }
         return requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
     
+    def get_model_product(produc_attributes) -> str:
+        
+        name_model = ""
+        
+        key_searched = "MODEL" if  ExcelMLUtility.marca != "vianney" else "MODEL"
+        for k in produc_attributes:
+          
+            if k["id"] == key_searched:
+                name_model = k["value_name"]
+                break
+        
+        return name_model
+
+    def get_model_from_attributes(attributes):
+        for attribute in attributes:
+            if attribute["id"] == "MODEL":
+                return attribute["value_name"]
+        return None
+    
+    def get_mi_product_pic():
+        
+        return
+    
     def re_escape_word() -> str:
         return r'\b' + re.escape(ExcelMLUtility.marca) + r'\b'
 
@@ -130,28 +153,8 @@ class ExcelMLUtility:
 
         return "echo"
 
-    def get_model_product(produc_attributes) -> str:
-        
-        name_model = ""
-        
-        key_searched = "MODEL" if  ExcelMLUtility.marca != "vianney" else "MODEL"
-        for k in produc_attributes:
-          
-            if k["id"] == key_searched:
-                name_model = k["value_name"]
-                break
-        
-        return name_model
-
-    def get_model_from_attributes(attributes):
-        for attribute in attributes:
-            if attribute["id"] == "MODEL":
-                return attribute["value_name"]
-        return None
-    
     def comparar_y_actualizar_precio(row):
 
-       
         nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
         precio_mio = row[Excel.PRECIO.value]
         modelo_mio = row[Excel.CODIGO.value]
