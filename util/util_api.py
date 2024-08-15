@@ -5,13 +5,26 @@ import pandas as pd
 from enums.api_data import Url,Paths,Excel
 from fastapi import HTTPException
 from pandas import DataFrame
+from PIL import Image
+from io import BytesIO
 import openpyxl
+import numpy as np
+
 
 class ExcelMLUtility:
     
     marca = "vianney"
     path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
-    # orden importa
+    
+    ACCESS_TOKEN = "APP_USR-5981985119336238-081513-15bc57d21d49a211d183af0b913dd2a7-191633463"
+    url = Url.SEARCH_PRODUCT.value
+
+    HEADERS = {
+        
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
+    
+    # orden importa para excel
     headers = [
 
         Excel.CANTIDAD.value,
@@ -37,6 +50,14 @@ class ExcelMLUtility:
         # "data_excel/bosch/bosch.xlsx"
     ]
 
+    def get_api(nombre_producto):
+        
+        params = {
+            "q": nombre_producto,
+            "limit": 10  # Puedes ajustar el número de resultados
+        }
+        return requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
+    
     def re_escape_word() -> str:
         return r'\b' + re.escape(ExcelMLUtility.marca) + r'\b'
 
@@ -127,17 +148,10 @@ class ExcelMLUtility:
             if attribute["id"] == "MODEL":
                 return attribute["value_name"]
         return None
-
+    
     def comparar_y_actualizar_precio(row):
 
-        ACCESS_TOKEN = 'APP_USR-5981985119336238-081413-defe799854006cbc672d3464c40b56e5-191633463'
-        url = Url.SEARCH_PRODUCT.value
-
-        HEADERS = {
-            
-            "Authorization": f"Bearer {ACCESS_TOKEN}"
-        }
-
+       
         nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
         precio_mio = row[Excel.PRECIO.value]
         modelo_mio = row[Excel.CODIGO.value]
@@ -156,7 +170,7 @@ class ExcelMLUtility:
             "limit": 10  # Puedes ajustar el número de resultados
         }
         
-        response = requests.get(url, headers=HEADERS, params=params)
+        response = requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
         
         if response.status_code == 200:
             data = response.json()
@@ -203,6 +217,25 @@ class ExcelMLUtility:
         # Retornar el número de palabras en común
         return len(palabras_comunes)
 
-    
-    def search_price():
-        return
+    def search_price_for_pic(url):
+        response = requests.get(url)
+        img_ml = Image.open(BytesIO(response.content))
+        img_local = Image.open("1.jpg")
+        
+        # Convertir ambas imágenes a escala de grises
+        img_ml_gray = img_ml.convert('L')
+        img_local_gray = img_local.convert('L')
+
+        size = (256, 256)
+        img_ml_gray = img_ml_gray.resize(size)
+        img_local_gray = img_local_gray.resize(size)
+        
+        # Calcular el histograma de ambas imágenes
+        hist_ml = np.array(img_ml_gray.histogram())
+        hist_local = np.array(img_local_gray.histogram())
+
+        # Comparar los histogramas usando una métrica de similitud (por ejemplo, correlación)
+        similarity = np.corrcoef(hist_ml, hist_local)[0, 1]
+
+        print(f"Similitud entre las imágenes: {similarity}")
+        return similarity

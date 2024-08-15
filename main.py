@@ -1,45 +1,27 @@
-from fastapi import FastAPI, Response,HTTPException
+from fastapi import FastAPI, Response,HTTPException,Form
 # from fastapi.responses import FileResponse
 from util.util_api import ExcelMLUtility
 from enums.api_data import Url,Paths,Excel
 from concurrent.futures import ThreadPoolExecutor
 
-import pandas as pd
-import requests
-import openpyxl
+
+
 # from openpyxl.styles import NamedStyle
 # import re
 
 app = FastAPI()
 
-# Configura tus credenciales de la API
-ACCESS_TOKEN = 'APP_USR-5981985119336238-081413-defe799854006cbc672d3464c40b56e5-191633463'
-url = Url.SEARCH_PRODUCT.value
-
-HEADERS = {
-    
-    "Authorization": f"Bearer {ACCESS_TOKEN}"
-}
-
-MARCA = "urrea"
-
+"""
 # Función para obtener el modelo del producto desde los atributos
-
 @app.get("/productos")
 async def listar_productos(query: str = "all", limit: int = 260 ):
 
     all_products = []
     offset = 0
     while len(all_products) < limit:
-        params = {
-            
-            "limit": 50,  # Número de resultados por página
-            "offset": offset,  # Página de resultados
-            "q": MARCA,  # Palabra clave de búsqueda
-            "seller_id": "344549261",  # ID del vendedor
-        }
-
-        response = requests.get(url, headers=HEADERS, params=params)
+        
+        response, params = ExcelMLUtility.get_api(offset)
+        
         if response.status_code == 200:
             data = response.json()
             results = data["results"]
@@ -64,9 +46,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
             offset += params["limit"]
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
-      
-    #break
-    #return item 
+        
     # Limitar la cantidad total de productos devueltos al límite solicitado
     productos_a_escribir = all_products[:limit]
 
@@ -100,6 +80,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
     wb.save(f"{Paths.PATH_EXCEL.value}{nombre_archivo}")
 
     return item
+"""
 
 @app.get("/get-excel")
 async def listar_productos( limit: int = 260):
@@ -136,7 +117,7 @@ async def limpiar_repetidos():
 @app.get("/precios")
 async def comparar_precios():   
     try:
-
+        
         df = ExcelMLUtility.read_excel()
         
         # Verificar si las columnas necesarias existen
@@ -153,11 +134,11 @@ async def comparar_precios():
             if col not in df.columns:
                 raise HTTPException(status_code=400, detail=f"La columna '{col}' no se encuentra en el archivo Excel.")
         
-        
         """for _, row  in df.iterrows():
             break
         row = ExcelMLUtility.comparar_y_actualizar_precio(row)
         return row"""
+        
         # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
         with ThreadPoolExecutor(max_workers=10) as executor:
             results = list(executor.map(ExcelMLUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()]))
@@ -167,6 +148,27 @@ async def comparar_precios():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
+
+@app.post("/search-price")
+async def comparar_precios(name: str = Form()):
+    
+    response = ExcelMLUtility.get_api(name)
+        
+    if response.status_code == 200:
+        data = response.json()
+        
+        for i in data["results"]:
+            
+            print('-------------------------')
+            similarity = ExcelMLUtility.search_price_for_pic(i['thumbnail'])
+            print('similitud',similarity)   
+            print(i['title'])
+            print(i['price'])
+            print(i['permalink'])
+            
+        return data["results"]
+    return 'echo'
+
 
 @app.get("/")
 async def root(response: Response = Response()):
