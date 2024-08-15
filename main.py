@@ -3,8 +3,7 @@ from fastapi import FastAPI, Response,HTTPException,Form
 from util.util_api import ExcelMLUtility
 from enums.api_data import Url,Paths,Excel
 from concurrent.futures import ThreadPoolExecutor
-
-
+import os
 
 # from openpyxl.styles import NamedStyle
 # import re
@@ -19,7 +18,13 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
     all_products = []
     offset = 0
     while len(all_products) < limit:
-        
+        params = {
+            
+            "limit": 50,  # Número de resultados por página
+            "offset": offset,  # Página de resultados
+            "q": MARCA,  # Palabra clave de búsqueda
+            "seller_id": "344549261",  # ID del vendedor
+        }
         response, params = ExcelMLUtility.get_api(offset)
         
         if response.status_code == 200:
@@ -156,19 +161,18 @@ async def comparar_precios(name: str = Form()):
         
     if response.status_code == 200:
         data = response.json()
-        
+        name_imagen = ExcelMLUtility.get_mi_product_pic(name)
         for i in data["results"]:
             
             print('-------------------------')
-            similarity = ExcelMLUtility.search_price_for_pic(i['thumbnail'])
+            similarity = ExcelMLUtility.search_price_for_pic(i['thumbnail'],name_imagen)
             print('similitud',similarity)   
             print(i['title'])
             print(i['price'])
             print(i['permalink'])
-            
+        os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")  
         return data["results"]
     return 'echo'
-
 
 @app.get("/")
 async def root(response: Response = Response()):

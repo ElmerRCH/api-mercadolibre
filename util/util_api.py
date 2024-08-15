@@ -9,7 +9,8 @@ from PIL import Image
 from io import BytesIO
 import openpyxl
 import numpy as np
-
+import hashlib
+import os
 
 class ExcelMLUtility:
     
@@ -77,10 +78,32 @@ class ExcelMLUtility:
                 return attribute["value_name"]
         return None
     
-    def get_mi_product_pic():
+    def get_mi_product_pic(name):
+        # Parámetros para la solicitud
+        params = {
+            "limit": 10,  # Número de resultados por página
+            "q": name,  # Palabra clave de búsqueda
+            "seller_id": "344549261",  # ID del vendedor
+        }
+
+        # Realizar la solicitud a la API de Mercado Libre
+        response = requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Procesar la primera imagen encontrada
+            if data["results"]:
+                first_item = data["results"][0]
+                
+                # Descargar la imagen usando la URL ya disponible
+                img_response = requests.get(first_item['thumbnail'])
+                img_ml = Image.open(BytesIO(img_response.content))
+                name_imagen = ExcelMLUtility.generar_nombre_hash(img_response.content)
+                img_ml.save(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")
+                
+                return name_imagen  # Devolver el primer resultado si lo necesitas
         
-        return
-    
+        return None  # En caso de fallo
     def re_escape_word() -> str:
         return r'\b' + re.escape(ExcelMLUtility.marca) + r'\b'
 
@@ -220,10 +243,10 @@ class ExcelMLUtility:
         # Retornar el número de palabras en común
         return len(palabras_comunes)
 
-    def search_price_for_pic(url):
+    def search_price_for_pic(url,name_imagen):
         response = requests.get(url)
         img_ml = Image.open(BytesIO(response.content))
-        img_local = Image.open("1.jpg")
+        img_local = Image.open(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")
         
         # Convertir ambas imágenes a escala de grises
         img_ml_gray = img_ml.convert('L')
@@ -239,6 +262,14 @@ class ExcelMLUtility:
 
         # Comparar los histogramas usando una métrica de similitud (por ejemplo, correlación)
         similarity = np.corrcoef(hist_ml, hist_local)[0, 1]
-
-        print(f"Similitud entre las imágenes: {similarity}")
+       
         return similarity
+    
+    def generar_nombre_hash(imagen_bytes):
+        # Crear un objeto hash MD5
+        hash_md5 = hashlib.md5()
+        # Actualizar el hash con el contenido de la imagen
+        hash_md5.update(imagen_bytes)
+        
+        # Devolver el hash en formato hexadecimal como nombre de archivo
+        return hash_md5.hexdigest()
