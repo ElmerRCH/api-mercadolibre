@@ -139,15 +139,15 @@ async def comparar_precios():
             if col not in df.columns:
                 raise HTTPException(status_code=400, detail=f"La columna '{col}' no se encuentra en el archivo Excel.")
         
-        """for _, row  in df.iterrows():
-            break
-        row = ExcelMLUtility.comparar_y_actualizar_precio(row)
-        return row"""
-        
+        """ for _, row  in df.iterrows():
+            
+            row = ExcelMLUtility.comparar_y_actualizar_precio(row)
+        return
+        """
         # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             results = list(executor.map(ExcelMLUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()]))
-
+                
         ExcelMLUtility.update_excel(results)
         return {"status": "Archivo actualizado exitosamente", "file": "productos_actualizados.xlsx"}
 
@@ -170,7 +170,7 @@ async def comparar_precios(name: str = Form()):
             print(i['title'])
             print(i['price'])
             print(i['permalink'])
-        os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")  
+        # os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")  
         return data["results"]
     return 'echo'
 

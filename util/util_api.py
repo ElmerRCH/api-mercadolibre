@@ -213,11 +213,23 @@ class ExcelMLUtility:
                    
             else:
                 
+                print('name::::::',nombre_producto)
+                similarity = 0.0
+                name_imagen = ExcelMLUtility.get_mi_product_pic(nombre_producto)
+                print('name_imagen::::::',name_imagen)
+                
                 for item in data["results"]:
-                  
-                    if ExcelMLUtility.product_word_match(item["title"].lower(),nombre_producto) > 3:
-                        productos_filtrados.append(item)
+                    if name_imagen != None:
+                       
+                        similarity = ExcelMLUtility.search_price_for_pic(item['thumbnail'],name_imagen)
+                        if similarity >= 0.85 and ExcelMLUtility.product_word_match(item["title"].lower(),nombre_producto) :
+                            productos_filtrados.append(item)      
+                    else:
                         
+                        if ExcelMLUtility.product_word_match(item["title"].lower(),nombre_producto):
+                            productos_filtrados.append(item)
+                                
+                #os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")         
             # return productos_filtrados    
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
@@ -234,14 +246,16 @@ class ExcelMLUtility:
             raise HTTPException(status_code=response.status_code, detail="Error en la solicitud a Mercado Libre")
 
     def product_word_match(str1, str2):
-        # Convertir las cadenas en conjuntos de palabras
-        set1 = set(str1.lower().split())
-        set2 = set(str2.lower().split())
+        # Convertir las cadenas en listas de palabras
+        palabras1 = str1.lower().split()
+        palabras2 = str2.lower().split()
         
-        # Calcular la intersección de los conjuntos
-        palabras_comunes = set1.intersection(set2)
-        # Retornar el número de palabras en común
-        return len(palabras_comunes)
+        # Verificar si ambas cadenas tienen al menos 3 palabras
+        if len(palabras1) < 3 or len(palabras2) < 3:
+            return False
+    
+        # Comparar las primeras tres palabras de ambas cadenas
+        return palabras1[:3] == palabras2[:3]
 
     def search_price_for_pic(url,name_imagen):
         response = requests.get(url)
