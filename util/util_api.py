@@ -17,6 +17,7 @@ class ExcelMLUtility:
         Excel.CANTIDAD.value,
         Excel.CODIGO.value,
         Excel.NOMBRE_PRODUCTO.value,
+        Excel.VENTAS.value,
         Excel.PRECIO.value,
         Excel.PRECIO_COMPETENCIA.value,
         Excel.PRECIO_COSTO.value
@@ -63,6 +64,7 @@ class ExcelMLUtility:
                 row[Excel.QUANTITY_ML.value],
                 row[Excel.SKU_ML.value],
                 row[Excel.NOMBRE_PRODUCTO_ML.value],
+                0,
                 row[Excel.MARKETPLACE_PRICE.value],
                 0,  # P.COMP
                 0,  # P.COSTO
@@ -77,7 +79,9 @@ class ExcelMLUtility:
     def process_duplicates(group):
                 if len(group) > 1:
                     # Si hay duplicados
+
                     group = group.sort_values(by=Excel.CODIGO.value, ascending=False)
+                    
                     if group[Excel.CODIGO.value].notna().any():
                         # Mantener el primero con código
                         group = group.dropna(subset=[Excel.CODIGO.value])
@@ -93,11 +97,13 @@ class ExcelMLUtility:
 
             # Limpiar espacios en blanco en los nombres de productos
             df[Excel.NOMBRE_PRODUCTO.value] = df[Excel.NOMBRE_PRODUCTO.value].str.strip()
-
+           
             # Identificar y eliminar productos repetidos
-            
             df = df.groupby(Excel.NOMBRE_PRODUCTO.value).apply(ExcelMLUtility.process_duplicates).reset_index(drop=True)
             
+            if ExcelMLUtility.marca == 'vianney':
+                df[Excel.CODIGO.value] = df[Excel.CODIGO.value].fillna(0).astype(int)
+              
             # Guardar el archivo limpio
             df.to_excel(i, index=False)
 
@@ -107,11 +113,13 @@ class ExcelMLUtility:
         
         name_model = ""
         
+        key_searched = "MODEL" if  ExcelMLUtility.marca != "vianney" else "MODEL"
         for k in produc_attributes:
-            if k["id"] == "MODEL":
+          
+            if k["id"] == key_searched:
                 name_model = k["value_name"]
                 break
-                    
+        
         return name_model
 
     def get_model_from_attributes(attributes):
@@ -122,8 +130,7 @@ class ExcelMLUtility:
 
     def comparar_y_actualizar_precio(row):
 
-
-        ACCESS_TOKEN = 'APP_USR-5981985119336238-081312-7872f3192991dc898d65071aacda66a2-191633463'
+        ACCESS_TOKEN = 'APP_USR-5981985119336238-081413-defe799854006cbc672d3464c40b56e5-191633463'
         url = Url.SEARCH_PRODUCT.value
 
         HEADERS = {
@@ -137,7 +144,13 @@ class ExcelMLUtility:
         
         if pd.isna(nombre_producto) or pd.isna(modelo_mio):
             return row
-
+        
+        # solo para vianney
+        nombre_producto = (
+                    nombre_producto.replace(str(int(modelo_mio)), '').strip() 
+                    if ExcelMLUtility.marca == "vianney" else nombre_producto
+        )
+        
         params = {
             "q": nombre_producto,
             "limit": 10  # Puedes ajustar el número de resultados
@@ -147,14 +160,25 @@ class ExcelMLUtility:
         
         if response.status_code == 200:
             data = response.json()
-
-            # Filtrar productos que contengan "marca" en el nombre y coincidan en modelo
-            productos_filtrados = [
-                item for item in data["results"]
-                if ExcelMLUtility.marca in item["title"].lower() and  ExcelMLUtility.get_model_product(item.get("attributes", [])) == modelo_mio
-            ]   
             
-            # Comparar precios solo con productos filtrados
+            productos_filtrados = []
+            # Filtrar productos que contengan "marca" en el nombre y coincidan en modelo
+            if ExcelMLUtility.marca != "vianney":
+                
+                productos_filtrados = [
+                    item for item in data["results"]
+                    
+                    if ExcelMLUtility.marca in item["title"].lower() and  ExcelMLUtility.get_model_product(item.get("attributes", [])) == modelo_mio
+                ]
+                   
+            else:
+                
+                for item in data["results"]:
+                  
+                    if ExcelMLUtility.product_word_match(item["title"].lower(),nombre_producto) > 3:
+                        productos_filtrados.append(item)
+                        
+            # return productos_filtrados    
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
@@ -169,5 +193,16 @@ class ExcelMLUtility:
         else:
             raise HTTPException(status_code=response.status_code, detail="Error en la solicitud a Mercado Libre")
 
+    def product_word_match(str1, str2):
+        # Convertir las cadenas en conjuntos de palabras
+        set1 = set(str1.lower().split())
+        set2 = set(str2.lower().split())
+        
+        # Calcular la intersección de los conjuntos
+        palabras_comunes = set1.intersection(set2)
+        # Retornar el número de palabras en común
+        return len(palabras_comunes)
+
+    
     def search_price():
         return

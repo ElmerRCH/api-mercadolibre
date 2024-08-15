@@ -13,7 +13,7 @@ import openpyxl
 app = FastAPI()
 
 # Configura tus credenciales de la API
-ACCESS_TOKEN = 'APP_USR-5981985119336238-081312-7872f3192991dc898d65071aacda66a2-191633463'
+ACCESS_TOKEN = 'APP_USR-5981985119336238-081413-defe799854006cbc672d3464c40b56e5-191633463'
 url = Url.SEARCH_PRODUCT.value
 
 HEADERS = {
@@ -152,7 +152,12 @@ async def comparar_precios():
         for col in required_columns:
             if col not in df.columns:
                 raise HTTPException(status_code=400, detail=f"La columna '{col}' no se encuentra en el archivo Excel.")
-
+        
+        
+        """for _, row  in df.iterrows():
+            break
+        row = ExcelMLUtility.comparar_y_actualizar_precio(row)
+        return row"""
         # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
         with ThreadPoolExecutor(max_workers=10) as executor:
             results = list(executor.map(ExcelMLUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()]))
