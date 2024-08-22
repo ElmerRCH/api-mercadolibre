@@ -14,10 +14,10 @@ import os
 
 class ExcelMLUtility:
     
-    marca = "vianney"
+    marca = "truper"
     path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
-    
-    ACCESS_TOKEN = "APP_USR-5981985119336238-081513-15bc57d21d49a211d183af0b913dd2a7-191633463"
+
+    ACCESS_TOKEN = "APP_USR-5981985119336238-082213-bded45ed8d13adf762dfd1e1f6758b02-191633463"
     url = Url.SEARCH_PRODUCT.value
 
     HEADERS = {
@@ -43,10 +43,19 @@ class ExcelMLUtility:
         # "data_excel/surtek/surtek.xlsx",
         # "data_excel/dica/dica.xlsx",
         # "data_excel/hyundai/hyundai.xlsx",
-        "data_excel/vianney/vianney.xlsx",
+        #"data_excel/vianney/vianney.xlsx",
+        # "data_excel/pretul/pretul.xlsx",
+        #"data_excel/foset/foset .xlsx",
+        # "data_excel/volteck/volteck.xlsx",
+        # "data_excel/hermex/hermex.xlsx",
+        #"data_excel/fiero/fiero.xlsx",
+        #"data_excel/victorinox/victorinox.xlsx",
+        #"data_excel/maglite/maglite.xlsx",
+        #"data_excel/jf lhabo/jf lhabo.xlsx",
+        
         # "data_excel/labomed/labomed.xlsx",
         # "data_excel/man/man.xlsx",
-        # "data_excel/urrea/urrea.xlsx",
+         "data_excel/urrea/urrea.xlsx",
         # "data_excel/gamo/gamo.xlsx",
         # "data_excel/bosch/bosch.xlsx"
     ]
@@ -104,6 +113,7 @@ class ExcelMLUtility:
                 return name_imagen  # Devolver el primer resultado si lo necesitas
         
         return None  # En caso de fallo
+    
     def re_escape_word() -> str:
         return r'\b' + re.escape(ExcelMLUtility.marca) + r'\b'
 
@@ -287,3 +297,22 @@ class ExcelMLUtility:
         
         # Devolver el hash en formato hexadecimal como nombre de archivo
         return hash_md5.hexdigest()
+
+    def get_product_up() -> int :
+        # 19 alto 
+        productos_arriba, productos_bajo_precio = 0,0
+        df = ExcelMLUtility.read_excel()
+        for _, row in df.iterrows():
+            row[Excel.PRECIO_COMPETENCIA.value] = str(row[Excel.PRECIO_COMPETENCIA.value])
+            
+            if row[Excel.PRECIO_COMPETENCIA.value] ==  '$0,00':
+                row[Excel.PRECIO_COMPETENCIA.value] = '-'
+            print( row[Excel.PRECIO_COMPETENCIA.value])
+            if  row[Excel.PRECIO_COMPETENCIA.value] == '-' or  row[Excel.PRECIO_COMPETENCIA.value] == '$ -':
+                productos_bajo_precio += 1
+                
+            else:
+                productos_arriba+=1
+               
+                    
+        return productos_arriba, productos_bajo_precio 

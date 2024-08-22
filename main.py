@@ -174,6 +174,22 @@ async def comparar_precios(name: str = Form()):
         return data["results"]
     return 'echo'
 
+@app.get("/productos-arriba-precio")
+async def get_product_up(response: Response = Response()):
+    
+    productos_arriba = 0
+    productos_bajo_precio = 0
+    
+    response.status_code = 403
+    
+    productos_arriba,productos_bajo_precio =  ExcelMLUtility.get_product_up()
+    
+    return {'productos_con_precios_altos': productos_arriba,
+            'productos_con_precios_bajos': productos_bajo_precio,
+            "total": productos_arriba + productos_bajo_precio
+            }
+
+
 @app.get("/")
 async def root(response: Response = Response()):
     response.status_code = 403
