@@ -1,7 +1,7 @@
 FROM python:3.12-slim-bullseye AS base
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        tesseract-ocr \
+ #       tesseract-ocr \
         libgl1 \
         libgl1-mesa-dri \
         libglib2.0-0 \

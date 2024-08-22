@@ -7,6 +7,7 @@ class Url(Enum):
 class Paths(Enum):
 
     PATH_EXCEL = "data_excel/"
+    PATH_IMG = "img/"
 
 class Excel(Enum):
     
