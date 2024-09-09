@@ -14,12 +14,12 @@ import os
 
 class ExcelMLUtility:
     
-    marca = "truper"
+    marca = "gamo"
     path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
-    ACCESS_TOKEN = "APP_USR-5981985119336238-082213-bded45ed8d13adf762dfd1e1f6758b02-191633463"
+    ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
     url = Url.SEARCH_PRODUCT.value
-
+    
     HEADERS = {
         
         "Authorization": f"Bearer {ACCESS_TOKEN}"

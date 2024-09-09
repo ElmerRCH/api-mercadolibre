@@ -141,6 +141,7 @@ async def comparar_precios():
 @router.post("/search-price")
 async def comparar_precios(name: str = Form()):
     
+
     response = ExcelMLUtility.get_api(name)
         
     if response.status_code == 200:
@@ -156,4 +157,5 @@ async def comparar_precios(name: str = Form()):
             print(i['permalink'])
         # os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")  
         return data["results"]
+    
     return 'echo'
