@@ -39,7 +39,7 @@ async def limpiar_repetidos():
 
 @router.get("/productos-arriba-precio")
 async def get_product_up(response: Response = Response()):
-    
+    print('entro peticion.............')
     productos_arriba = 0
     productos_bajo_precio = 0
     productos_arriba,productos_bajo_precio =  ExcelMLUtility.get_product_up()

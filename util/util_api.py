@@ -27,7 +27,7 @@ class ExcelMLUtility:
     
     # orden importa para excel
     headers = [
-
+        
         Excel.CANTIDAD.value,
         Excel.CODIGO.value,
         Excel.NOMBRE_PRODUCTO.value,
@@ -307,7 +307,6 @@ class ExcelMLUtility:
             
             if row[Excel.PRECIO_COMPETENCIA.value] ==  '$0,00':
                 row[Excel.PRECIO_COMPETENCIA.value] = '-'
-            print( row[Excel.PRECIO_COMPETENCIA.value])
             if  row[Excel.PRECIO_COMPETENCIA.value] == '-' or  row[Excel.PRECIO_COMPETENCIA.value] == '$ -':
                 productos_bajo_precio += 1
                 

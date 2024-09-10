@@ -1,0 +1,9 @@
+data = [
+    
+    "bosch":{
+        "productos_con_precios_altos": 19,
+        "productos_con_precios_bajos": 20,
+        "total": 39
+    }
+
+]
