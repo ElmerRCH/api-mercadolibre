@@ -2,6 +2,8 @@ from routes import Excels,api_ml
 from fastapi import FastAPI, Response
 from middlewares.token_renewal import TokenRenewalMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+from tasks.tasks import tarea_periodica
+import asyncio
 
 app = FastAPI()
 app.add_middleware(TokenRenewalMiddleware)
@@ -21,3 +23,9 @@ app.include_router(api_ml.router, prefix="/api-ml", tags=["api-ml"])
 async def root(response: Response = Response()):
     response.status_code = 403
     return 'activo'
+
+@app.on_event("startup")
+async def iniciar_tareas_periodicas():
+    
+    # Lanza la tarea periódica cuando la aplicación inicia
+    asyncio.create_task(tarea_periodica())

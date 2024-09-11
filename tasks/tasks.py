@@ -1,10 +1,9 @@
-from tasks.celery_app import celery_app
-import time
+import asyncio
 
-@celery_app.task
-def process_data_task(data):
-    # Simula una tarea que tarda en completarse
-    time.sleep(10)
-    # Procesa los datos y genera un archivo, por ejemplo
-    result = f"Processed data: {data}"
-    return result
+async def tarea_periodica():
+    
+    while True:
+        with open("archivo.txt", "w") as archivo:
+            archivo.write("Este es el contenido del archivo.\n")
+        await asyncio.sleep(10)  # Intervalo de 10 segundos
+
