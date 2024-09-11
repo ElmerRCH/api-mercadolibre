@@ -4,7 +4,7 @@ from middlewares.token_renewal import TokenRenewalMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from tasks.tasks import tarea_periodica
 import asyncio
-
+    
 app = FastAPI()
 app.add_middleware(TokenRenewalMiddleware)
 
