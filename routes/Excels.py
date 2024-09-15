@@ -2,6 +2,7 @@ from fastapi import FastAPI, Response,HTTPException,Form
 from fastapi import APIRouter, HTTPException, Depends
 from enums.api_data import Url,Paths,Excel
 from util.util_api import ExcelMLUtility
+import json
 
 router = APIRouter()
 
@@ -39,12 +40,16 @@ async def limpiar_repetidos():
 
 @router.get("/productos-arriba-precio")
 async def get_product_up(response: Response = Response()):
-    print('entro peticion.............')
-    productos_arriba = 0
-    productos_bajo_precio = 0
-    productos_arriba,productos_bajo_precio =  ExcelMLUtility.get_product_up()
     
-    return {'productos_con_precios_altos': productos_arriba,
-            'productos_con_precios_bajos': productos_bajo_precio,
-            "total": productos_arriba + productos_bajo_precio
-            }
+    """data_products = []
+    name_productos = ['gamo','bellota','bosch']
+    
+    data_products = map(ExcelMLUtility.get_product_up , name_productos)
+    data_products = list(data_products)
+    print('data::',data_products)"""
+    with open("data_excel/data_products.json", "r") as archivo:
+        datos = json.load(archivo)
+    return datos
+    
+
+

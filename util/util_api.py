@@ -298,10 +298,14 @@ class ExcelMLUtility:
         # Devolver el hash en formato hexadecimal como nombre de archivo
         return hash_md5.hexdigest()
 
-    def get_product_up() -> int :
-        # 19 alto 
+    def get_product_up(marca=None) -> object :
+        
+        if marca is None:
+            marca = ExcelMLUtility.marca
+        path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
+
         productos_arriba, productos_bajo_precio = 0,0
-        df = ExcelMLUtility.read_excel()
+        df = ExcelMLUtility.read_excel(path)
         for _, row in df.iterrows():
             row[Excel.PRECIO_COMPETENCIA.value] = str(row[Excel.PRECIO_COMPETENCIA.value])
             
@@ -312,6 +316,10 @@ class ExcelMLUtility:
                 
             else:
                 productos_arriba+=1
-               
-                    
-        return productos_arriba, productos_bajo_precio 
+                
+        return {
+            'name':marca,
+            'productos_con_precios_altos': productos_arriba,
+            'productos_con_precios_bajos': productos_bajo_precio,
+            'total': productos_arriba + productos_bajo_precio
+            }
