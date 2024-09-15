@@ -27,6 +27,11 @@ def renovar_token():
         access_token = data["access_token"]
         refresh_token = data["refresh_token"]
         expiracion_token = time.time() + data["expires_in"]
+        with open(".env", "w") as env_file:
+            env_file.write(f'ACCESS_TOKEN="{access_token}"\n')
+            env_file.write(f'REFRESH_TOKEN="{refresh_token}"\n')
+            env_file.write(f'CLIENT_ID="{os.getenv("CLIENT_ID")}"\n')
+            env_file.write(f'CLIENT_SECRET="{os.getenv("CLIENT_SECRET")}"\n')
         
         print("Token renovado exitosamente")
     else:
