@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv, set_key
 router = APIRouter()
 
-
 @router.post("/update-tokens/")
 async def update_tokens(access_token: str, refresh_token: str, response: Response):
     try:
@@ -126,8 +125,9 @@ async def comparar_precios():
         """ for _, row  in df.iterrows():
             
             row = ExcelMLUtility.comparar_y_actualizar_precio(row)
-        return
-        """
+            break
+        return"""
+        
         # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
         with ThreadPoolExecutor(max_workers=5) as executor:
             results = list(executor.map(ExcelMLUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()]))
@@ -141,14 +141,15 @@ async def comparar_precios():
 @router.post("/search-price")
 async def comparar_precios(name: str = Form()):
     
-
     response = ExcelMLUtility.get_api(name)
-        
+ 
     if response.status_code == 200:
         data = response.json()
+
         name_imagen = ExcelMLUtility.get_mi_product_pic(name)
+
         for i in data["results"]:
-            
+            return i
             print('-------------------------')
             similarity = ExcelMLUtility.search_price_for_pic(i['thumbnail'],name_imagen)
             print('similitud',similarity)   
@@ -156,6 +157,5 @@ async def comparar_precios(name: str = Form()):
             print(i['price'])
             print(i['permalink'])
         # os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")  
-        return data["results"]
     
     return 'echo'
