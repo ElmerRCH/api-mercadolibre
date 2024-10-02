@@ -14,7 +14,7 @@ import os
 
 class ExcelMLUtility:
     
-    marca = "gamo"
+    marca = "bosch"
     path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
@@ -94,20 +94,20 @@ class ExcelMLUtility:
             "q": name,  # Palabra clave de búsqueda
             "seller_id": "344549261",  # ID del vendedor
         }
-
+        
         # Realizar la solicitud a la API de Mercado Libre
         response = requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
         if response.status_code == 200:
             data = response.json()
-            
+
             # Procesar la primera imagen encontrada
             if data["results"]:
                 first_item = data["results"][0]
-                
                 # Descargar la imagen usando la URL ya disponible
                 img_response = requests.get(first_item['thumbnail'])
                 img_ml = Image.open(BytesIO(img_response.content))
                 name_imagen = ExcelMLUtility.generar_nombre_hash(img_response.content)
+
                 img_ml.save(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")
                 
                 return name_imagen  # Devolver el primer resultado si lo necesitas
@@ -223,11 +223,9 @@ class ExcelMLUtility:
                    
             else:
                 
-                print('name::::::',nombre_producto)
                 similarity = 0.0
                 name_imagen = ExcelMLUtility.get_mi_product_pic(nombre_producto)
-                print('name_imagen::::::',name_imagen)
-                
+
                 for item in data["results"]:
                     if name_imagen != None:
                        
