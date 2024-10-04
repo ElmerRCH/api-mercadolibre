@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Response,HTTPException,Form
+from fastapi import Response,HTTPException,Form
 from fastapi import APIRouter, HTTPException, Depends
 from enums.api_data import Excel
 from util.util_api import ExcelMLUtility
-from concurrent.futures import ThreadPoolExecutor
+from util.excel_util import ExcelUtility
 from dotenv import load_dotenv, set_key
 router = APIRouter()
 
@@ -103,7 +103,8 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 """
 
 @router.get("/precios")
-async def comparar_precios():   
+async def comparar_precios():
+     
     try:
         
         df = ExcelMLUtility.read_excel()
@@ -128,11 +129,8 @@ async def comparar_precios():
             break
         return"""
         
-        # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            results = list(executor.map(ExcelMLUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()]))
-                
-        ExcelMLUtility.update_excel(results)
+        data = ExcelUtility.comparar_y_actualizar_precio_poll()
+        ExcelMLUtility.update_excel(data['row'])
         return {"status": "Archivo actualizado exitosamente", "file": "productos_actualizados.xlsx"}
 
     except Exception as e:

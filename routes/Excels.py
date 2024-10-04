@@ -31,9 +31,7 @@ async def listar_productos( limit: int = 260):
 
 @router.get("/limpiar-repetidos-nombre")
 async def limpiar_repetidos():
-   
     try:
-       
         return {"mensaje":ExcelMLUtility.delete_data_repeat()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
@@ -41,15 +39,6 @@ async def limpiar_repetidos():
 @router.get("/productos-arriba-precio")
 async def get_product_up(response: Response = Response()):
     
-    """data_products = []
-    name_productos = ['gamo','bellota','bosch']
-    
-    data_products = map(ExcelMLUtility.get_product_up , name_productos)
-    data_products = list(data_products)
-    print('data::',data_products)"""
     with open("data_excel/data_products.json", "r") as archivo:
         datos = json.load(archivo)
     return datos
-    
-
-
