@@ -1,4 +1,8 @@
 .idea
 *.pyc
-.env
-img
+git rm --cached .env
+img/
+git rm --cached data_excel/
+img/
+git rm --cached data_token.txt
+.DS_Store
