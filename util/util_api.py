@@ -14,8 +14,9 @@ import os
 
 class ExcelMLUtility:
     
-    marca = "bosch"
-    path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
+         
+    # marca = "bosch"
+    # path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
     url = Url.SEARCH_PRODUCT.value
@@ -68,11 +69,11 @@ class ExcelMLUtility:
         }
         return requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
     
-    def get_model_product(produc_attributes) -> str:
+    def get_model_product(produc_attributes,brand) -> str:
         
         name_model = ""
         
-        key_searched = "MODEL" if  ExcelMLUtility.marca != "vianney" else "MODEL"
+        key_searched = "MODEL" if  brand != "vianney" else "MODEL"
         for k in produc_attributes:
           
             if k["id"] == key_searched:
@@ -117,7 +118,8 @@ class ExcelMLUtility:
     def re_escape_word() -> str:
         return r'\b' + re.escape(ExcelMLUtility.marca) + r'\b'
 
-    def read_excel(path = path) -> DataFrame:
+    def read_excel(path) -> DataFrame:
+        
         return pd.read_excel(path)
     
     def update_excel(results):
@@ -186,19 +188,19 @@ class ExcelMLUtility:
 
         return "echo"
 
-    def comparar_y_actualizar_precio(row):
+    def comparar_y_actualizar_precio(row,brand):
 
         nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
         precio_mio = row[Excel.PRECIO.value]
         modelo_mio = row[Excel.CODIGO.value]
         
         if pd.isna(nombre_producto) or pd.isna(modelo_mio):
-            return row
-        
+            return {}
+
         # solo para vianney
         nombre_producto = (
                     nombre_producto.replace(str(int(modelo_mio)), '').strip() 
-                    if ExcelMLUtility.marca == "vianney" else nombre_producto
+                    if brand == "vianney" else nombre_producto
         )
         
         params = {
@@ -207,22 +209,22 @@ class ExcelMLUtility:
         }
         
         response = requests.get(ExcelMLUtility.url, headers=ExcelMLUtility.HEADERS, params=params)
-        
+
         if response.status_code == 200:
             data = response.json()
             
             productos_filtrados = []
             # Filtrar productos que contengan "marca" en el nombre y coincidan en modelo
-            if ExcelMLUtility.marca != "vianney":
-                
+            if brand != "vianney":
+
                 productos_filtrados = [
                     item for item in data["results"]
                     
-                    if ExcelMLUtility.marca in item["title"].lower() and  ExcelMLUtility.get_model_product(item.get("attributes", [])) == modelo_mio
+                    if brand in item["title"].lower() and  ExcelMLUtility.get_model_product(item.get("attributes", []),brand) == modelo_mio
                 ]
                    
             else:
-                
+
                 similarity = 0.0
                 name_imagen = ExcelMLUtility.get_mi_product_pic(nombre_producto)
 
@@ -236,7 +238,8 @@ class ExcelMLUtility:
                         
                         if ExcelMLUtility.product_word_match(item["title"].lower(),nombre_producto):
                             productos_filtrados.append(item)
-                                
+                     
+                print('data item:::::',item)           
                 #os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")         
             # return productos_filtrados    
             precios = [
@@ -249,7 +252,22 @@ class ExcelMLUtility:
             else:
                 row['P.COMP'] = '-'  # Si no hay un precio más bajo, se pone un '-'
             
-            return row
+            
+            return {
+                
+                "name": row[Excel.NOMBRE_PRODUCTO.value],
+                "codigo": row[Excel.CODIGO.value],
+                "precio": row[Excel.PRECIO.value],
+                "precio_competencia": row['P.COMP'],
+                # "precio_compra": 0,
+                # "precio_recomendado": 0,
+                # "link_mi_publicacion": "data.com",
+                
+                "Link_competencia_publicacion": productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
+                "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''
+                
+            }
+            
         else:
             raise HTTPException(status_code=response.status_code, detail="Error en la solicitud a Mercado Libre")
 
@@ -297,7 +315,6 @@ class ExcelMLUtility:
         return hash_md5.hexdigest()
 
     def get_product_up(marca=None) -> object :
-        
         if marca is None:
             marca = ExcelMLUtility.marca
         path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"

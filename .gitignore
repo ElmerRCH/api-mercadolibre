@@ -1,4 +1,7 @@
 .idea
 *.pyc
 .env
-img
+img/
+data_excel/
+data_token.txt
+.DS_Store
