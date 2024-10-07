@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Response,HTTPException,Form
 from fastapi import APIRouter, HTTPException, Depends
 from enums.api_data import Url,Paths,Excel
-from util.util_api import ExcelMLUtility
+from util.util_api import ApiUtility
+from util.excel_util import ExcelUtility
+
 import json
 
 router = APIRouter()
@@ -10,20 +12,22 @@ router = APIRouter()
 async def listar_productos( limit: int = 260):
 
     try:
+        # revisar
+        brand = ''
         # Leer el archivo Excel de Mercado Libre
-        df_ml = ExcelMLUtility.read_excel("data_excel/general/mercadolibre.xlsx")
+        df_ml = ExcelUtility.read_excel("data_excel/general/mercadolibre.xlsx")
 
         # Filtrar productos que contengan la palabra clave en su nombre
     
         productos_filtrados = df_ml[
         df_ml
-        [Excel.NOMBRE_PRODUCTO_ML.value].str.contains(ExcelMLUtility.re_escape_word(),
+        [Excel.NOMBRE_PRODUCTO_ML.value].str.contains(ExcelUtility.re_escape_word(),
         case=False, na=False)
         ]
 
         # Limitar el número de productos a 'limit'
         productos_filtrados = productos_filtrados.head(None)
-        nombre_archivo = ExcelMLUtility.create_excel(productos_filtrados)
+        nombre_archivo = ExcelUtility.create_excel(productos_filtrados,brand)
         return {"mensaje": "Archivo Excel generado exitosamente", "ruta": nombre_archivo}
 
     except Exception as e:

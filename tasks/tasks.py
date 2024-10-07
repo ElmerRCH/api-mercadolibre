@@ -1,4 +1,6 @@
-from util.util_api import ExcelMLUtility
+from util.util_api import ApiUtility
+from util.excel_util import ExcelUtility
+
 from util.excel_util import ExcelUtility
 
 import asyncio
@@ -11,7 +13,7 @@ async def brands_data_prices():
      
     while True:
         
-        data_products = map(ExcelMLUtility.get_product_up, name_brands)
+        data_products = map(ExcelUtility.get_product_up, name_brands)
         data_products = sorted(list(data_products), key=lambda x: x['productos_con_precios_altos'], reverse=True)
         
         # Paso 3: Guardar el JSON en un archivo

@@ -1,29 +1,10 @@
-from fastapi import Response,HTTPException,Form
+from fastapi import HTTPException,Form
 from fastapi import APIRouter, HTTPException, Depends
-from enums.api_data import Excel
-from util.util_api import ExcelMLUtility
+from enums.excel import Excel
+from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
-from dotenv import load_dotenv, set_key
+
 router = APIRouter()
-
-@router.post("/update-tokens/")
-async def update_tokens(access_token: str, refresh_token: str, response: Response):
-    try:
-        # Ruta al archivo .env
-        env_path = ".env"
-        
-        # Actualizar el archivo .env con los nuevos tokens
-        set_key(env_path, "ACCESS_TOKEN", access_token)
-        set_key(env_path, "REFRESH_TOKEN", refresh_token)
-
-        # Recargar las variables de entorno
-        load_dotenv(dotenv_path=env_path)
-
-        return {"message": "Tokens actualizados exitosamente"}
-    
-    except Exception as e:
-        response.status_code = 500
-        return {"error": str(e)}
 
 """
 # Función para obtener el modelo del producto desde los atributos
@@ -104,22 +85,14 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 
 @router.get("/precios")
 async def comparar_precios():
-     
+
     try:
         
-        df = ExcelMLUtility.read_excel()
+        # funcion necesita parametro path
+        df = ExcelUtility.read_excel()
         
-        # Verificar si las columnas necesarias existen
-        required_columns = [
-            
-            Excel.PRECIO.value,
-            Excel.NOMBRE_PRODUCTO.value,
-            Excel.PRECIO_COMPETENCIA.value,
-            Excel.PRECIO.value,
-            Excel.CODIGO.value
-        ]
-        
-        for col in required_columns:
+        # Verificar si las columnas necesarias existen   
+        for col in Excel.required_columns.value:
             if col not in df.columns:
                 raise HTTPException(status_code=400, detail=f"La columna '{col}' no se encuentra en el archivo Excel.")
         
@@ -129,8 +102,8 @@ async def comparar_precios():
             break
         return"""
         
-        data = ExcelUtility.comparar_y_actualizar_precio_poll()
-        ExcelMLUtility.update_excel(data['row'])
+        data, path = ExcelUtility.comparar_y_actualizar_precio_poll()
+        ExcelUtility.update_excel(data['row'],path)
         return {"status": "Archivo actualizado exitosamente", "file": "productos_actualizados.xlsx"}
 
     except Exception as e:
@@ -139,12 +112,12 @@ async def comparar_precios():
 @router.post("/search-price")
 async def comparar_precios(name: str = Form()):
     
-    response = ExcelMLUtility.get_api(name)
+    response = ApiUtility.get_api(name)
  
     if response.status_code == 200:
         data = response.json()
 
-        name_imagen = ExcelMLUtility.get_mi_product_pic(name)
+        name_imagen = ApiUtility.get_mi_product_pic(name)
 
         for i in data["results"]:
             return i
