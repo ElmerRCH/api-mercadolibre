@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Response,HTTPException,Form
-from fastapi import APIRouter, HTTPException, Depends
-from enums.api_data import Url,Paths,Excel
-from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
+from fastapi import Response,HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from enums.api_data import Excel
 
 import json
 
@@ -30,13 +29,6 @@ async def listar_productos( limit: int = 260):
         nombre_archivo = ExcelUtility.create_excel(productos_filtrados,brand)
         return {"mensaje": "Archivo Excel generado exitosamente", "ruta": nombre_archivo}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
-
-@router.get("/limpiar-repetidos-nombre")
-async def limpiar_repetidos():
-    try:
-        return {"mensaje":ExcelMLUtility.delete_data_repeat()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar el archivo Excel: {str(e)}")
 
