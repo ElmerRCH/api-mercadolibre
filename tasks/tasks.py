@@ -1,6 +1,3 @@
-from util.util_api import ApiUtility
-from util.excel_util import ExcelUtility
-
 from util.excel_util import ExcelUtility
 
 import asyncio

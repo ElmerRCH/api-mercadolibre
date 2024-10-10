@@ -126,6 +126,14 @@ class ApiUtility:
                     return group.head(1)
                 return group
     
+    def check_api_connection():
+        params = {
+            "q": 'Brazo Para Pared Redondo De 40cm 4550brr Dica',
+            "limit": 10  # Puedes ajustar el número de resultados
+        }
+        response = requests.get(ApiUtility.url, headers=ApiUtility.HEADERS, params=params)
+        return response.status_code
+    
     # revisar
     """ def delete_data_repeat(path) -> str:
         
@@ -149,9 +157,9 @@ class ApiUtility:
         return "echo"
     """
     def comparar_y_actualizar_precio(row,brand):
-
+        
         nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
-        precio_mio = row[Excel.PRECIO.value]
+        precio_mio = float(row[Excel.PRECIO.value].replace('$', '').replace(',', '').strip())
         modelo_mio = row[Excel.CODIGO.value]
         
         if pd.isna(nombre_producto) or pd.isna(modelo_mio):
@@ -176,6 +184,7 @@ class ApiUtility:
             productos_filtrados = []
             # Filtrar productos que contengan "marca" en el nombre y coincidan en modelo
             if brand != "vianney":
+                print('llego-------------------------')
 
                 productos_filtrados = [
                     item for item in data["results"]
@@ -184,7 +193,7 @@ class ApiUtility:
                 ]
                    
             else:
-
+                
                 similarity = 0.0
                 name_imagen = ApiUtility.get_mi_product_pic(nombre_producto)
 
@@ -199,8 +208,9 @@ class ApiUtility:
                         if ApiUtility.product_word_match(item["title"].lower(),nombre_producto):
                             productos_filtrados.append(item)
                           
-                #os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")         
-            # return productos_filtrados    
+            if len(productos_filtrados) is 0:
+               return {}
+               
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
@@ -210,7 +220,6 @@ class ApiUtility:
                 row['P.COMP'] = min(precios)  # El precio más bajo encontrado
             else:
                 row['P.COMP'] = '-'  # Si no hay un precio más bajo, se pone un '-'
-            
             
             return {
                 

@@ -54,7 +54,7 @@ class ExcelUtility:
      # Revisar
     
     def get_product_up(marca=None) -> object :
-        
+
         
         path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
@@ -85,8 +85,11 @@ class ExcelUtility:
         
         df = ExcelUtility.read_excel(path)
         # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
+        
         with ThreadPoolExecutor(max_workers=5) as executor:
             data = list(executor.map(ApiUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()],[brand] * len(df)))
+
+        data = [obj for obj in data if obj]
 
         with open(f"data_excel/{brand}/{brand}.json", "w") as archivo:
             archivo.write(json.dumps({'marca':brand,'data':data}, indent=None))

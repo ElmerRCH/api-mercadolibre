@@ -83,6 +83,12 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
     return item
 """
 
+@router.get("/check-connection")
+async def check_connection():
+    
+    petition = ApiUtility.check_api_connection()
+    return petition
+
 @router.get("/precios")
 async def comparar_precios():
 
