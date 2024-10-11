@@ -1,12 +1,15 @@
 from util.excel_util import ExcelUtility
-from fastapi import Response,HTTPException
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, HTTPException,Form,Response
 from enums.api_data import Excel
+from pydantic import BaseModel
 
 import json
 
 router = APIRouter()
-
+class Producto(BaseModel):
+    marca: str
+    
 @router.get("/get-excel")
 async def listar_productos( limit: int = 260):
 
@@ -36,5 +39,12 @@ async def listar_productos( limit: int = 260):
 async def get_product_up(response: Response = Response()):
     
     with open("data_excel/data_products.json", "r") as archivo:
+        datos = json.load(archivo)
+    return datos
+
+@router.post("/productos")
+async def get_products(producto: Producto):
+
+    with open(f"data_excel/{producto.marca}/{producto.marca}.json", "r") as archivo:
         datos = json.load(archivo)
     return datos
