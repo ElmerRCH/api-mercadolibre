@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from enums.excel import Excel
 from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
+import httpx
 
 router = APIRouter()
 
@@ -122,7 +123,7 @@ async def comparar_precios(name: str = Form()):
  
     if response.status_code == 200:
         data = response.json()
-
+        
         name_imagen = ApiUtility.get_mi_product_pic(name)
 
         for i in data["results"]:
@@ -136,3 +137,30 @@ async def comparar_precios(name: str = Form()):
         # os.remove(f"{Paths.PATH_IMG.value}{name_imagen}.jpg")  
     
     return 'echo'
+
+# para conocer vendedores de un producto
+@router.post("/search-seller")
+async def serach_seller(query: str):
+   
+    try:
+       
+        response = ApiUtility.get_api(query)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Error al consultar MercadoLibre")
+
+        data = response.json()
+
+        # Extraer vendedores (seller_id y nombre del vendedor)
+        vendedores = []
+        for item in data.get("results", []):
+            vendedor_info = {
+                "seller_id": item.get("seller", {}).get("id"),
+                "seller_name": item.get("seller", {}).get("nickname")
+            }
+            if vendedor_info["seller_id"] and vendedor_info["seller_name"]:
+                vendedores.append(vendedor_info)
+
+        return {"vendedores": vendedores}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

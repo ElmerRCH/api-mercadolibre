@@ -162,14 +162,18 @@ class ApiUtility:
         precio_mio = float(row[Excel.PRECIO.value].replace('$', '').replace(',', '').strip())
         modelo_mio = row[Excel.CODIGO.value]
         
-        if pd.isna(nombre_producto) or pd.isna(modelo_mio):
+        if pd.isna(nombre_producto) and pd.isna(modelo_mio):
             return {}
 
         # solo para vianney
-        nombre_producto = (
+        """ nombre_producto = (
                     nombre_producto.replace(str(int(modelo_mio)), '').strip() 
                     if brand == "vianney" else nombre_producto
-        )
+        )"""
+        
+        # si no trae modelo se le asigna nombre de producto
+        if pd.isna(modelo_mio):
+            modelo_mio = nombre_producto
         
         params = {
             "q": nombre_producto,
@@ -184,8 +188,6 @@ class ApiUtility:
             productos_filtrados = []
             # Filtrar productos que contengan "marca" en el nombre y coincidan en modelo
             if brand != "vianney":
-                print('llego-------------------------')
-
                 productos_filtrados = [
                     item for item in data["results"]
                     
@@ -209,31 +211,34 @@ class ApiUtility:
                             productos_filtrados.append(item)
                           
             if len(productos_filtrados) is 0:
-               return {}
+                print('nombre_producto',nombre_producto)
+                print('entro........................')
+                return {}
                
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
-
+            # otra excepcion para regresar vacio, analisar refact despues.
+            
             # Actualizar la columna P.COMP según la comparación
             if precios:
-                row['P.COMP'] = min(precios)  # El precio más bajo encontrado
+                row[Excel.PRECIO_COMPETENCIA.value] = min(precios)  # El precio más bajo encontrado
             else:
-                row['P.COMP'] = '-'  # Si no hay un precio más bajo, se pone un '-'
+                return {}
+                # row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
             
             return {
                 
                 "name": row[Excel.NOMBRE_PRODUCTO.value],
                 "codigo": row[Excel.CODIGO.value],
                 "precio": row[Excel.PRECIO.value],
-                "precio_competencia": row['P.COMP'],
+                "precio_competencia": row[Excel.PRECIO_COMPETENCIA.value],
                 # "precio_compra": 0,
                 # "precio_recomendado": 0,
                 # "link_mi_publicacion": "data.com",
                 
                 "Link_competencia_publicacion": productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
-                "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''
-                
+                "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''   
             }
             
         else:
