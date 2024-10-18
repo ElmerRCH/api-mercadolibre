@@ -157,11 +157,11 @@ class ApiUtility:
         return "echo"
     """
     def comparar_y_actualizar_precio(row,brand):
-        
+
         nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
         precio_mio = float(row[Excel.PRECIO.value].replace('$', '').replace(',', '').strip())
         modelo_mio = row[Excel.CODIGO.value]
-        
+
         if pd.isna(nombre_producto) and pd.isna(modelo_mio):
             return {}
 
@@ -188,10 +188,22 @@ class ApiUtility:
             productos_filtrados = []
             # Filtrar productos que contengan "marca" en el nombre y coincidan en modelo
             if brand != "vianney":
+                
+                """for item in  data["results"]:
+                    seller_id = item.get("seller", {}).get("id")
+                    
+                    # Excluir vendedores con los IDs 1689066639 y 771779041
+                    if seller_id not in [1689066639, 771779041, 344549261]:
+                        if brand in item["title"].lower():
+                            if ApiUtility.get_model_product(item.get("attributes", []),brand) == modelo_mio:
+                                productos_filtrados.append(item)"""
+
                 productos_filtrados = [
                     item for item in data["results"]
                     
-                    if brand in item["title"].lower() and  ApiUtility.get_model_product(item.get("attributes", []),brand) == modelo_mio
+                    if brand in item["title"].lower() 
+                    and ApiUtility.get_model_product(item.get("attributes", []), brand) == modelo_mio
+                    and item.get("seller", {}).get("id") not in [1689066639,344549261, 771779041]  # Excluir vendedores
                 ]
                    
             else:
@@ -211,14 +223,11 @@ class ApiUtility:
                             productos_filtrados.append(item)
                           
             if len(productos_filtrados) is 0:
-                print('nombre_producto',nombre_producto)
-                print('entro........................')
                 return {}
                
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
-            # otra excepcion para regresar vacio, analisar refact despues.
             
             # Actualizar la columna P.COMP según la comparación
             if precios:
@@ -227,6 +236,8 @@ class ApiUtility:
                 return {}
                 # row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
             
+            ###################
+        
             return {
                 
                 "name": row[Excel.NOMBRE_PRODUCTO.value],

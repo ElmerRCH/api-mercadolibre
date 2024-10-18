@@ -86,9 +86,15 @@ class ExcelUtility:
         df = ExcelUtility.read_excel(path)
         # Usar ThreadPoolExecutor para manejar el procesamiento en paralelo
         
+        """ for _, row in df.iterrows():
+            data = ApiUtility.comparar_y_actualizar_precio(row,brand)
+            break
+        """
+        
         with ThreadPoolExecutor(max_workers=5) as executor:
             data = list(executor.map(ApiUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()],[brand] * len(df)))
         print('len data::::',len(data))
+        
         data = [obj for obj in data if obj]
 
         with open(f"data_excel/{brand}/{brand}.json", "w") as archivo:
