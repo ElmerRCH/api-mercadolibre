@@ -4,12 +4,34 @@ from enums.excel import Excel
 from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
 import httpx
+import requests
 
 router = APIRouter()
 
-"""
+@router.get("/actualizar-inventario")
+async def get_productos_vendedor():
+    # URL del API de MercadoLibre para obtener los productos de un vendedor
+    url = f"https://api.mercadolibre.com/sites/MLM/search?seller_id=344549261"
+    
+    try:
+        
+        # Realizar la solicitud a la API de MercadoLibre
+        response = requests.get(url)
+        response.raise_for_status()  # Verifica si hubo algún error HTTP
+        
+        # Obtener los datos de la respuesta en formato JSON
+        data = response.json()
+        
+        # Devolver los productos
+        return data["results"]  # La lista de productos está en la clave "results"
+    
+    except requests.exceptions.RequestException as e:
+        # En caso de error en la solicitud, devolvemos un error HTTP 500
+        raise HTTPException(status_code=500, detail=f"Error al obtener los productos: {str(e)}")
+
+
 # Función para obtener el modelo del producto desde los atributos
-@app.get("/productos")
+"""@router.get("/actualizar-inventario")
 async def listar_productos(query: str = "all", limit: int = 260 ):
 
     all_products = []
@@ -22,6 +44,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
             "q": MARCA,  # Palabra clave de búsqueda
             "seller_id": "344549261",  # ID del vendedor
         }
+        
         response, params = ExcelMLUtility.get_api(offset)
         
         if response.status_code == 200:
@@ -83,7 +106,6 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 
     return item
 """
-
 @router.get("/check-connection")
 async def check_connection():
     

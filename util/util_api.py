@@ -60,12 +60,14 @@ class ApiUtility:
         # "data_excel/bosch/bosch.xlsx"
     ]
 
-    def get_api(nombre_producto):
+    def get_api(nombre_producto,params = None):
         
-        params = {
-            "q": nombre_producto,
-            "limit": 10  # Puedes ajustar el número de resultados
-        }
+        if params is None:
+            params = {
+                "q": nombre_producto,
+                "limit": 10
+            }
+            
         return requests.get(ApiUtility.url, headers=ApiUtility.HEADERS, params=params)
     
     def get_model_product(produc_attributes,brand) -> str:
