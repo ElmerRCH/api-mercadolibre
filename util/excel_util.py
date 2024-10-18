@@ -19,19 +19,19 @@ class ExcelUtility:
 
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = ApiUtility.marca
+        ws.title = brand
         ws.append(ApiUtility.headers)
         # Escribir los datos
-
-        for _, row in productos_filtrados.iterrows():
+        
+        for _, producto in enumerate(productos_filtrados, start=1):
             ws.append([
-                row[Excel.QUANTITY_ML.value],
-                row[Excel.SKU_ML.value],
-                row[Excel.NOMBRE_PRODUCTO_ML.value],
-                0,
-                row[Excel.MARKETPLACE_PRICE.value],
-                0,  # P.COMP
-                0,  # P.COSTO
+                 0,
+                producto[Excel.CODIGO.value],
+                producto[Excel.NOMBRE_PRODUCTO.value],
+                producto[Excel.VENTAS.value],
+                producto[Excel.PRECIO.value],
+            0,
+            0,
             ])
         
         # Guardar el archivo Excel

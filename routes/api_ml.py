@@ -10,20 +10,34 @@ router = APIRouter()
 
 @router.get("/actualizar-inventario")
 async def get_productos_vendedor():
-    # URL del API de MercadoLibre para obtener los productos de un vendedor
-    url = f"https://api.mercadolibre.com/sites/MLM/search?seller_id=344549261"
+    all_products = []
     
+    # URL del API de MercadoLibre para obtener los productos de un vendedor    
     try:
         
         # Realizar la solicitud a la API de MercadoLibre
-        response = requests.get(url)
-        response.raise_for_status()  # Verifica si hubo algún error HTTP
-        
-        # Obtener los datos de la respuesta en formato JSON
-        data = response.json()
-        
+        response = ApiUtility.get_api(None,True)
+        if response.status_code == 200: 
+            data = response.json()
+            cont = 0
+            return data
+            for item in data["results"]:
+                cont +=1 
+                print('name:::::',item["title"].lower())          
+                if "urrea" in item["title"].lower():
+                        print('entro................')
+                        all_products.append({
+                            Excel.CODIGO.value: ApiUtility.get_model_product(item["attributes"]),
+                            Excel.NOMBRE_PRODUCTO.value: item["title"],
+                            Excel.VENTAS.value: item.get("sold_quantity", 0),
+                            Excel.PRECIO.value: item["price"]
+                        })
+                        
+            return cont
+            _  = ExcelUtility.create_excel(all_products,'urrea')
+            
         # Devolver los productos
-        return data["results"]  # La lista de productos está en la clave "results"
+        return 'echo' 
     
     except requests.exceptions.RequestException as e:
         # En caso de error en la solicitud, devolvemos un error HTTP 500

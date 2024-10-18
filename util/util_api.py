@@ -60,17 +60,19 @@ class ApiUtility:
         # "data_excel/bosch/bosch.xlsx"
     ]
 
-    def get_api(nombre_producto,params = None):
+    def get_api(nombre_producto,get_all_products = False):
         
-        if params is None:
-            params = {
-                "q": nombre_producto,
-                "limit": 10
-            }
-            
-        return requests.get(ApiUtility.url, headers=ApiUtility.HEADERS, params=params)
+        
+        params = {
+            "q": nombre_producto,
+            "limit": 10
+        }
+
+        url =  ApiUtility.url if get_all_products is False else 'https://api.mercadolibre.com/sites/MLM/search?seller_id=344549261'
+        
+        return requests.get(url, headers=ApiUtility.HEADERS, params=params) if get_all_products is False else requests.get(url)
     
-    def get_model_product(produc_attributes,brand) -> str:
+    def get_model_product(produc_attributes,brand = None) -> str:
         
         name_model = ""
         
