@@ -5,36 +5,93 @@ from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
 import httpx
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 router = APIRouter()
+
+
+def fetch_products(offset):
+    print('offfset',offset)
+    try:
+        response = ApiUtility.get_api(None,True,offset)
+        response.raise_for_status()  # Verifica si hubo algún error HTTP
+        data = response.json()
+        return data["results"]
+    except requests.exceptions.RequestException as e:
+        return []
+
 
 @router.get("/actualizar-inventario")
 async def get_productos_vendedor():
     all_products = []
-    
-    # URL del API de MercadoLibre para obtener los productos de un vendedor    
+    productos = []
+    offset = 0
+    limit = 50 
+    total = None
     try:
-        
-        # Realizar la solicitud a la API de MercadoLibre
+            
         response = ApiUtility.get_api(None,True)
-        if response.status_code == 200: 
-            data = response.json()
-            cont = 0
-            return data
-            for item in data["results"]:
-                cont +=1 
-                print('name:::::',item["title"].lower())          
-                if "urrea" in item["title"].lower():
-                        print('entro................')
-                        all_products.append({
-                            Excel.CODIGO.value: ApiUtility.get_model_product(item["attributes"]),
-                            Excel.NOMBRE_PRODUCTO.value: item["title"],
-                            Excel.VENTAS.value: item.get("sold_quantity", 0),
-                            Excel.PRECIO.value: item["price"]
-                        })
-                        
-            return cont
-            _  = ExcelUtility.create_excel(all_products,'urrea')
+        data = response.json()
+        return data["results"]
+        total = data.get("paging", {}).get("total", 0)
+        
+        # num_requests = (total // limit) + (1 if total % limit != 0 else 0)
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(fetch_products,offset)
+                for offset in range(0, total, limit)
+            ]
+            
+        cont = 0
+        # Esperar que todas las solicitudes terminen y recolectar los productos
+        for future in as_completed(futures):
+            cont +=1
+            productos.extend(future.result())
+
+    
+        # productos_urrea = [producto for producto in productos if 'urrea' in producto["title"].lower()]
+        
+        return len(productos)
+    
+        # Realizar la solicitud a la API de MercadoLibre
+        while True:
+            print('total',offset)
+            if offset > 1000:
+                break
+            
+            response = ApiUtility.get_api(None,True,offset)
+            if response.status_code == 200: 
+                data = response.json()
+
+                if total is None:
+                    total = data.get("paging", {}).get("total", 0)  # Número total de productos
+
+                productos.extend(data["results"])
+                
+                # Incrementar el offset para la siguiente página
+                offset += limit
+                # Si hemos recuperado todos los productos, salir del bucle
+                if offset >= total:
+                    break
+                
+        productos_urrea = [producto for producto in productos if 'urrea' in producto["title"].lower()]     
+        return len(productos)
+               
+        print('cantidad productos::',len(productos)) 
+        """for item in data["results"]:
+                    cont +=1 
+                    print('name:::::',item["title"].lower())          
+                    if "urrea" in item["title"].lower():
+                            print('entro................')
+                            all_products.append({
+                                Excel.CODIGO.value: ApiUtility.get_model_product(item["attributes"]),
+                                Excel.NOMBRE_PRODUCTO.value: item["title"],
+                                Excel.VENTAS.value: item.get("sold_quantity", 0),
+                                Excel.PRECIO.value: item["price"]
+                            })
+                            """
+        return cont
+        _  = ExcelUtility.create_excel(all_products,'urrea')
             
         # Devolver los productos
         return 'echo' 
@@ -46,20 +103,22 @@ async def get_productos_vendedor():
 
 # Función para obtener el modelo del producto desde los atributos
 """@router.get("/actualizar-inventario")
-async def listar_productos(query: str = "all", limit: int = 260 ):
+async def listar_productos(query: str = "all", limit: int = 500 ):
 
     all_products = []
     offset = 0
-    while len(all_products) < limit:
-        params = {
+    params = {
             
-            "limit": 50,  # Número de resultados por página
-            "offset": offset,  # Página de resultados
-            "q": MARCA,  # Palabra clave de búsqueda
-            "seller_id": "344549261",  # ID del vendedor
+        "limit": 50,  # Número de resultados por página
+        "offset": offset,  # Página de resultados
+        "q": 'urrea',  # Palabra clave de búsqueda
+        "seller_id": "344549261",  # ID del vendedor
         }
         
-        response, params = ExcelMLUtility.get_api(offset)
+    while len(all_products) < limit:
+        
+        response = ApiUtility.get_api(None,True,offset)
+        # response, params = requests.get(offset)
         
         if response.status_code == 200:
             data = response.json()
@@ -71,7 +130,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
                 all_products.append({
                    
                     #"codigo_producto": item["attributes"][-1]["value_name"] if "attributes" in item and item["attributes"] else 0,
-                    "codigo_producto": ExcelMLUtility.get_model_product(item["attributes"]),
+                    "codigo_producto": ApiUtility.get_model_product(item["attributes"]),
                     "nombre_producto": item["title"],
                     "ventas": item.get("sold_quantity", 0),
                     "precio": item["price"]
@@ -88,7 +147,8 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
         
     # Limitar la cantidad total de productos devueltos al límite solicitado
     productos_a_escribir = all_products[:limit]
-
+    
+    return len(productos_a_escribir)
     # Crear un archivo Excel y escribir los datos
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -120,6 +180,7 @@ async def listar_productos(query: str = "all", limit: int = 260 ):
 
     return item
 """
+
 @router.get("/check-connection")
 async def check_connection():
     
