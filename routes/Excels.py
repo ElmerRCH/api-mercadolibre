@@ -1,5 +1,4 @@
 from util.excel_util import ExcelUtility
-
 from fastapi import APIRouter, HTTPException,Form,Response
 from enums.api_data import Excel
 from pydantic import BaseModel
@@ -7,6 +6,7 @@ from pydantic import BaseModel
 import json
 
 router = APIRouter()
+
 class Producto(BaseModel):
     marca: str
     

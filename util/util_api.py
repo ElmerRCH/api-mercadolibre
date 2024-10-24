@@ -34,7 +34,8 @@ class ApiUtility:
         Excel.VENTAS.value,
         Excel.PRECIO.value,
         Excel.PRECIO_COMPETENCIA.value,
-        Excel.PRECIO_COSTO.value
+        Excel.PRECIO_COSTO.value,
+        Excel.MI_PUBLICACION.value
     ]
     
     # para limpiar de momento
@@ -60,30 +61,17 @@ class ApiUtility:
         # "data_excel/bosch/bosch.xlsx"
     ]
 
-    def get_api(nombre_producto,get_all_products = False,offset = 0):
+    def get_api(nombre_producto,get_all_products = False,params = {}):
+        url = Url.SEARCH_PRODUCT.value
         
-        
-        params = {
-            "q": nombre_producto,
-            "limit": 10
-        }
+        if get_all_products is False:
+            params = {
+                "q": nombre_producto,
+                "limit": 10
+            }
 
-        if get_all_products:
-            """ params = {
-                "limit": 50,  # Número de resultados por página
-                "offset": offset,  # Página de resultados
-                "q": 'urrea',  # Palabra clave de búsqueda
-                "seller_id": "344549261",  # ID del vendedor
-            }"""
-            
-            url = 'https://api.mercadolibre.com/sites/MLM/search?seller_id=344549261'
-            limit = 50  # Máximo permitido por la API
-            url = f"{url}&limit={limit}&offset={offset}"
-            
         
-        url =  ApiUtility.url if get_all_products is False else url
-        print('url:::',url)
-        return requests.get(url, headers=ApiUtility.HEADERS, params=params) if get_all_products is False else requests.get(url)
+        return requests.get(url, headers=ApiUtility.HEADERS, params=params)
 
     def get_model_product(produc_attributes,brand = None) -> str:
         
@@ -176,8 +164,10 @@ class ApiUtility:
     def comparar_y_actualizar_precio(row,brand):
 
         nombre_producto = row[Excel.NOMBRE_PRODUCTO.value]
-        precio_mio = float(row[Excel.PRECIO.value].replace('$', '').replace(',', '').strip())
+        # precio_mio = float(row[Excel.PRECIO.value].replace('$', '').replace(',', '').strip())
+        precio_mio = row[Excel.PRECIO.value]
         modelo_mio = row[Excel.CODIGO.value]
+        publicacion = row[Excel.MI_PUBLICACION.value]
 
         if pd.isna(nombre_producto) and pd.isna(modelo_mio):
             return {}
@@ -263,8 +253,7 @@ class ApiUtility:
                 "precio_competencia": row[Excel.PRECIO_COMPETENCIA.value],
                 # "precio_compra": 0,
                 # "precio_recomendado": 0,
-                # "link_mi_publicacion": "data.com",
-                
+                "link_mi_publicacion": publicacion,
                 "Link_competencia_publicacion": productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
                 "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''   
             }

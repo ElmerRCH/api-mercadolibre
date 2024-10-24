@@ -25,13 +25,14 @@ class ExcelUtility:
         
         for _, producto in enumerate(productos_filtrados, start=1):
             ws.append([
-                 0,
+                0,
                 producto[Excel.CODIGO.value],
                 producto[Excel.NOMBRE_PRODUCTO.value],
                 producto[Excel.VENTAS.value],
                 producto[Excel.PRECIO.value],
-            0,
-            0,
+                0,
+                0,
+                producto[Excel.MI_PUBLICACION.value]
             ])
         
         # Guardar el archivo Excel
