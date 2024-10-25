@@ -229,9 +229,11 @@ class ApiUtility:
                         if ApiUtility.product_word_match(item["title"].lower(),nombre_producto):
                             productos_filtrados.append(item)
                           
-            if len(productos_filtrados) is 0:
+            """ if len(productos_filtrados) is 0:
+                print('entro..........|')
                 return {}
-               
+            """
+            
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
@@ -240,8 +242,8 @@ class ApiUtility:
             if precios:
                 row[Excel.PRECIO_COMPETENCIA.value] = min(precios)  # El precio más bajo encontrado
             else:
-                return {}
-                # row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
+                # return {}
+                row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
             
             ###################
         

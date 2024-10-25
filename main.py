@@ -24,13 +24,14 @@ app.include_router(api_ml.router, prefix="/api-ml", tags=["api-ml"])
 @app.get("/")
 async def root(response: Response = Response()):
     
-    name_brands = ['gamo']
+    name_brands = ['bellota']
     data_products = list(map(ExcelUtility.comparar_y_actualizar_precio_poll, name_brands))
 
     return 'activo'
 
 @app.on_event("startup")
 async def iniciar_tareas_periodicas():
+    return
     # Lanza la tarea periódica cuando la aplicación inicia
     asyncio.create_task(brands_data_prices())
     asyncio.create_task(brands_all_products_data())

@@ -53,7 +53,6 @@ class ExcelUtility:
     
     
     # Revisar
-    
     def get_product_up(marca=None) -> object :
 
         
