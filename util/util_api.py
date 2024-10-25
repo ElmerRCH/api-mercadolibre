@@ -304,4 +304,15 @@ class ApiUtility:
         # Devolver el hash en formato hexadecimal como nombre de archivo
         return hash_md5.hexdigest()
 
-   
+    def obtener_link_publicacion(item) -> str:
+        
+        url = f"https://api.mercadolibre.com/items/{item['id']}"
+        response = requests.get(url)
+        data = response.json()
+        
+        # Verificar si el vendedor es el correcto
+        if data['seller_id'] == 344549261:
+            return data['permalink']
+        else:
+            return None
+       

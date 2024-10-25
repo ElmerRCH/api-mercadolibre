@@ -3,7 +3,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from enums.excel import Excel
 from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
-import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 router = APIRouter()
@@ -13,7 +12,8 @@ async def listar_productos(query: str = "all", limit: int = 300 ):
 
     all_products = []
     offset = 0
-    marca = 'urrea'
+    marca = 'gamo'
+    
     while len(all_products) < limit:
         params = {
             
@@ -30,8 +30,13 @@ async def listar_productos(query: str = "all", limit: int = 300 ):
 
             # Extraer la información relevante
             for item in results:
-
+                
                 link_publicacion = item.get("permalink", "Link no disponible")
+                
+                # excepcion necesaria para cuando api trae mal link de publicacion
+                if 'unknown' == item['permalink'][len(item['permalink'])-len('unknown' ):]:
+                    link_publicacion = ApiUtility.obtener_link_publicacion(item)
+
                 all_products.append({
                     #"codigo_producto": item["attributes"][-1]["value_name"] if "attributes" in item and item["attributes"] else 0,
                     Excel.CODIGO.value: ApiUtility.get_model_product(item["attributes"]),
@@ -40,19 +45,16 @@ async def listar_productos(query: str = "all", limit: int = 300 ):
                     Excel.PRECIO.value: item["price"],
                     Excel.MI_PUBLICACION.value: link_publicacion
                 })
-              
+                
             # Verifica si hay más resultados
             if len(results) < params["limit"]:
                 break  # Salir si no hay más resultados
-            
+        
             # Incrementar el offset para la siguiente página
             offset += params["limit"]
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
-      
-    # Limitar la cantidad total de productos devueltos al límite solicitado
-    # productos_a_escribir = all_products[:limit]
-          
+                
     _  = ExcelUtility.create_excel(all_products[:limit],marca)  
     return 'echo'
 

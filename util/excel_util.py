@@ -52,7 +52,7 @@ class ExcelUtility:
         return r'\b' + re.escape(bread) + r'\b'
     
     
-     # Revisar
+    # Revisar
     
     def get_product_up(marca=None) -> object :
 
@@ -92,15 +92,14 @@ class ExcelUtility:
             break
         """
         
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor() as executor:
             data = list(executor.map(ApiUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()],[brand] * len(df)))
-        print('len data::::',len(data))
-        
+
         data = [obj for obj in data if obj]
 
         with open(f"data_excel/{brand}/{brand}.json", "w") as archivo:
             archivo.write(json.dumps({'marca':brand,'data':data}, indent=None))
         
         # ExcelMLUtility.update_excel(data['row'])
-             
+
         return data, path
