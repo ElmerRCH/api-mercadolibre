@@ -52,25 +52,24 @@ class ExcelUtility:
         return r'\b' + re.escape(bread) + r'\b'
     
     
-    # Revisar
     def get_product_up(marca=None) -> object :
 
-        
-        path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
-
+        path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}.json"
         productos_arriba, productos_bajo_precio = 0,0
-        df = ExcelUtility.read_excel(path)
-        for _, row in df.iterrows():
-            row[Excel.PRECIO_COMPETENCIA.value] = str(row[Excel.PRECIO_COMPETENCIA.value])
-            
-            if row[Excel.PRECIO_COMPETENCIA.value] ==  '$0,00':
-                row[Excel.PRECIO_COMPETENCIA.value] = '-'
-            if  row[Excel.PRECIO_COMPETENCIA.value] == '-' or  row[Excel.PRECIO_COMPETENCIA.value] == '$ -':
+       
+        with open(path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        # Recorre los productos en el JSON y cuenta los precios altos y bajos
+        for producto in data['data']:
+            precio_competencia = str(producto.get('precio_competencia', ''))
+
+            # Normaliza los valores de precios sin definir
+            if precio_competencia in ['$0,00', '-', '$ -']:
                 productos_bajo_precio += 1
-                
             else:
-                productos_arriba+=1
-                
+                productos_arriba += 1
+                   
         return {
             'name':marca,
             'productos_con_precios_altos': productos_arriba,

@@ -246,11 +246,10 @@ class ApiUtility:
                 row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
             
             ###################
-        
             return {
                 
                 "name": row[Excel.NOMBRE_PRODUCTO.value],
-                "codigo": row[Excel.CODIGO.value],
+                "codigo": "" if pd.isna(row[Excel.CODIGO.value]) else row[Excel.CODIGO.value],
                 "precio": row[Excel.PRECIO.value],
                 "precio_competencia": row[Excel.PRECIO_COMPETENCIA.value],
                 # "precio_compra": 0,

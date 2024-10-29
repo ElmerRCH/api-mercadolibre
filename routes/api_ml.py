@@ -12,7 +12,7 @@ async def listar_productos(query: str = "all", limit: int = 300 ):
 
     all_products = []
     offset = 0
-    marca = 'gamo'
+    marca = 'bellota'
     
     while len(all_products) < limit:
         params = {
