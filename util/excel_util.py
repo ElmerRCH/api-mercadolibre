@@ -1,7 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
 from util.util_api import ApiUtility
-from enums.api_data import Paths,Excel
 
+from enums.api_data import Paths,Excel
+from enums.excel import ExcelStruct
 from pandas import DataFrame
 import pandas as pd
 import openpyxl
@@ -20,7 +21,7 @@ class ExcelUtility:
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = brand
-        ws.append(ApiUtility.headers)
+        ws.append(ExcelStruct.headers.value)
         # Escribir los datos
         
         for _, producto in enumerate(productos_filtrados, start=1):
@@ -89,9 +90,9 @@ class ExcelUtility:
             data = ApiUtility.comparar_y_actualizar_precio(row,brand)
             break
         """
-        
+
         with ThreadPoolExecutor() as executor:
-            data = list(executor.map(ApiUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()],[brand] * len(df)))
+           data = list(executor.map(ApiUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()],[brand] * len(df)))
 
         data = [obj for obj in data if obj]
 

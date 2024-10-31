@@ -9,6 +9,7 @@ class Paths(Enum):
     PATH_EXCEL = "data_excel/"
     PATH_IMG = "img/"
 
+
 class Excel(Enum):
     
     TYPE_EXTENSION = ".xlsx"

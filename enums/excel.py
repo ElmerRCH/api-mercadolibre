@@ -1,4 +1,6 @@
 from enum import Enum
+
+
 class Excel(Enum):
     
     TYPE_EXTENSION = ".xlsx"
@@ -22,5 +24,36 @@ class Excel(Enum):
         NOMBRE_PRODUCTO,
         PRECIO_COMPETENCIA,
         CODIGO
+    ]
+    
+class ExcelStruct(Enum):
+    
+    TYPE_EXTENSION = ".xlsx"
+
+    CANTIDAD = "CANT."
+    CODIGO = "CODIGO"
+    NOMBRE_PRODUCTO = "PRODUCTO"
+    VENTAS = "VENTAS"
+    PRECIO = "PRECIO"
+    PRECIO_COMPETENCIA = "P.COMP"
+    PRECIO_COSTO = "P.COSTO"
+    MI_PUBLICACION = "PUBLICACION"
+
+    MARKETPLACE_PRICE = "MARKETPLACE_PRICE"
+    NOMBRE_PRODUCTO_ML = "TITLE"
+    QUANTITY_ML = "QUANTITY"
+    SKU_ML = "SKU"
+    
+    # orden importa para excel
+    headers = [
+        
+        Excel.CANTIDAD.value,
+        Excel.CODIGO.value,
+        Excel.NOMBRE_PRODUCTO.value,
+        Excel.VENTAS.value,
+        Excel.PRECIO.value,
+        Excel.PRECIO_COMPETENCIA.value,
+        Excel.PRECIO_COSTO.value,
+        Excel.MI_PUBLICACION.value
     ]
         

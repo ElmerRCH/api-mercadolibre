@@ -2,9 +2,7 @@ import requests
 import pandas as pd
 
 from enums.api_data import Url,Paths,Excel
-
 from fastapi import HTTPException
-from pandas import DataFrame
 from PIL import Image
 from io import BytesIO
 import numpy as np
@@ -317,3 +315,51 @@ class ApiUtility:
         else:
             return None
        
+    def actualizar_inventario_ml(brand):
+        limit = 300
+        all_products = []
+        offset = 0
+        
+        while len(all_products) < limit:
+            params = {
+                
+                "limit": 50,  # Número de resultados por página
+                "offset": offset,  # Página de resultados
+                "q": brand,  # Palabra clave de búsqueda
+                "seller_id": "344549261",  # ID del vendedor
+            }
+            
+            response = ApiUtility.get_api(None,True,params)
+            if response.status_code == 200:
+                data = response.json()
+                results = data["results"]
+
+                # Extraer la información relevante
+                for item in results:
+                    
+                    link_publicacion = item.get("permalink", "Link no disponible")
+                    
+                    # excepcion necesaria para cuando api trae mal link de publicacion
+                    if 'unknown' == item['permalink'][len(item['permalink'])-len('unknown' ):]:
+                        link_publicacion = ApiUtility.obtener_link_publicacion(item)
+
+                    all_products.append({
+                        #"codigo_producto": item["attributes"][-1]["value_name"] if "attributes" in item and item["attributes"] else 0,
+                        Excel.CODIGO.value: ApiUtility.get_model_product(item["attributes"]),
+                        Excel.NOMBRE_PRODUCTO.value: item["title"],
+                        Excel.VENTAS.value: item.get("sold_quantity", 0),
+                        Excel.PRECIO.value: item["price"],
+                        Excel.MI_PUBLICACION.value: link_publicacion
+                    })
+                
+            # Verifica si hay más resultados
+            if len(results) < params["limit"]:
+                break  # Salir si no hay más resultados
+        
+            # Incrementar el offset para la siguiente página
+            offset += params["limit"]
+        else:
+            raise HTTPException(status_code=response.status_code, detail="Error al consultar los productos")
+           
+        return  all_products[:limit],brand
+         

@@ -6,7 +6,6 @@ from tasks.tasks import brands_data_prices,brands_all_products_data
 import asyncio
 from util.excel_util import ExcelUtility
 
-
 app = FastAPI()
 app.add_middleware(TokenRenewalMiddleware)
 
@@ -24,17 +23,16 @@ app.include_router(api_ml.router, prefix="/api-ml", tags=["api-ml"])
 @app.get("/")
 async def root(response: Response = Response()):
     
-    name_brands = ['bellota']
+    name_brands = ['urrea']
     data_products = list(map(ExcelUtility.comparar_y_actualizar_precio_poll, name_brands))
 
     return 'activo'
 
 @app.on_event("startup")
 async def iniciar_tareas_periodicas():
-
+    return
     # Lanza la tarea periódica cuando la aplicación inicia
     asyncio.create_task(brands_data_prices())
-    
-    # asyncio.create_task(brands_all_products_data())
+    asyncio.create_task(brands_all_products_data())
     
 
