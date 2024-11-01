@@ -1,4 +1,4 @@
-from routes import excels,api_ml
+from routes import Excels,api_ml
 from fastapi import FastAPI, Response
 from middlewares.token_renewal import TokenRenewalMiddleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"], # Permite todos los headers
 )
 
-app.include_router(excels.router, prefix="/excel", tags=["excel"])
+app.include_router(Excels.router, prefix="/excel", tags=["excel"])
 app.include_router(api_ml.router, prefix="/api-ml", tags=["api-ml"])
 
 @app.get("/")
