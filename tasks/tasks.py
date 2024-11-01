@@ -17,7 +17,7 @@ async def brands_data_prices():
         with open("data_excel/data_products.json", "w") as archivo:
             archivo.write(json.dumps(data_products, indent=None))
             
-        await asyncio.sleep(20)
+        await asyncio.sleep(120)
 
 async def brands_all_products_data():
     
@@ -26,5 +26,5 @@ async def brands_all_products_data():
         for i in name_brands:
             ExcelUtility.comparar_y_actualizar_precio_poll(i)
   
-        await asyncio.sleep(100)
+        await asyncio.sleep(50)
     

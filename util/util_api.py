@@ -235,6 +235,7 @@ class ApiUtility:
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
+            link_competencia = productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
             
             # Actualizar la columna P.COMP según la comparación
             if precios:
@@ -242,7 +243,8 @@ class ApiUtility:
             else:
                 # return {}
                 row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
-            
+                link_competencia = ''  # Si no hay un precio más bajo, se pone un '-'
+                
             ###################
             return {
                 
@@ -253,7 +255,7 @@ class ApiUtility:
                 # "precio_compra": 0,
                 # "precio_recomendado": 0,
                 "link_mi_publicacion": publicacion,
-                "Link_competencia_publicacion": productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
+                "Link_competencia_publicacion": link_competencia,
                 "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''   
             }
             
