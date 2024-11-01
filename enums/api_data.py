@@ -9,6 +9,7 @@ class Paths(Enum):
     PATH_EXCEL = "data_excel/"
     PATH_IMG = "img/"
 
+
 class Excel(Enum):
     
     TYPE_EXTENSION = ".xlsx"
@@ -20,6 +21,8 @@ class Excel(Enum):
     PRECIO = "PRECIO"
     PRECIO_COMPETENCIA = "P.COMP"
     PRECIO_COSTO = "P.COSTO"
+    MI_PUBLICACION = "PUBLICACION"
+
 
     MARKETPLACE_PRICE = "MARKETPLACE_PRICE"
     NOMBRE_PRODUCTO_ML = "TITLE"

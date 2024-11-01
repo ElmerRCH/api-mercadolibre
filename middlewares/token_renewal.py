@@ -9,7 +9,7 @@ class TokenRenewalMiddleware(BaseHTTPMiddleware):
         if token_expirado():
             # Renueva el token usando el refresh_token
             renovar_token()
-
+        
         # Continúa con la solicitud
         response = await call_next(request)
         return response
