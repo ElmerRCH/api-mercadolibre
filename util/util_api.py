@@ -10,8 +10,7 @@ import hashlib
 import os
 
 class ApiUtility:
-    
-         
+     
     # marca = "bosch"
     # path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
