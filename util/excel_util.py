@@ -26,6 +26,7 @@ class ExcelUtility:
         
         for _, producto in enumerate(productos_filtrados, start=1):
             ws.append([
+                producto[Excel.PRODUCTO_ID.value],
                 0,
                 producto[Excel.CODIGO.value],
                 producto[Excel.NOMBRE_PRODUCTO.value],
@@ -33,9 +34,10 @@ class ExcelUtility:
                 producto[Excel.PRECIO.value],
                 0,
                 0,
-                producto[Excel.MI_PUBLICACION.value]
+                producto[Excel.MI_PUBLICACION.value],
+                producto[Excel.MI_URL_IMG.value]
             ])
-        
+
         # Guardar el archivo Excel
         nombre_archivo = f"{brand}{Excel.TYPE_EXTENSION.value}"
         ruta_directorio = f"{Paths.PATH_EXCEL.value}{brand}"

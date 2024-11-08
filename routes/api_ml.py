@@ -11,10 +11,11 @@ router = APIRouter()
 @router.get("/actualizar-inventario")
 async def actualizar_inventario(query: str = "all" ):
 
-    name_brands = ['gamo','bellota','urrea']
+    name_brands = ['gamo']
     for i in name_brands:
        products,brand =  ApiUtility.actualizar_inventario_ml(i)
        _  = ExcelUtility.create_excel(products,brand)     
+    
     return 'echo'
 
 @router.get("/img-search")
