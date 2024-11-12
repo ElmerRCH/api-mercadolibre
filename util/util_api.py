@@ -11,8 +11,10 @@ import os
 import json
 
 class ApiUtility:
+    
+    
     path_json_picture = 'data_excel/url_pics.json'
-    # marca = "bosch"
+    brands_active =  ['gamo','bellota','urrea']
     # path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
@@ -235,7 +237,7 @@ class ApiUtility:
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
-            link_competencia = productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
+            link_competencia = productos_filtrados[0]['permalink'] if len(productos_filtrados) != 0 else '',
             
             # Actualizar la columna P.COMP según la comparación
             if precios:
@@ -244,7 +246,6 @@ class ApiUtility:
                 # return {}
                 row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
                 link_competencia = ''  # Si no hay un precio más bajo, se pone un '-'
-            
             
             
             return {
@@ -257,7 +258,7 @@ class ApiUtility:
                 # "precio_recomendado": 0,
                 "link_mi_publicacion": publicacion,
                 "Link_competencia_publicacion": link_competencia,
-                "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''   
+                "url_img": row[Excel.MI_URL_IMG.value]
             }
             
         else:
@@ -374,24 +375,20 @@ class ApiUtility:
         url = ''
         if not os.path.exists(ApiUtility.path_json_picture):
             url = ApiUtility.get_url_pic(product_id)
-            print('entro.........1')
+
             data_products = [
                 {
                     "id":product_id,
                     "url": url
                 }
-            ]
-            print('datooooos 1:',data_products)
-            
+            ]            
             with open(ApiUtility.path_json_picture, "w") as archivo:
                 archivo.write(json.dumps(data_products, indent=None))
                 
         else:
 
-            
             with open(ApiUtility.path_json_picture, "r") as archivo:
                 datos = json.load(archivo)
-            print('datooooos recolecto:',data_products)
             
             producto = next((item for item in datos if item["id"] == product_id), None)
             url = producto['url'] if producto is not None else ApiUtility.get_url_pic(product_id,True, datos)
@@ -408,9 +405,10 @@ class ApiUtility:
             url = data["pictures"][0]["url"] if data.get("pictures") else data.get("thumbnail")
             # para actualizar json
             if actualizar:
-                print('entro a actualizar')
+        
+                datos.append({"id":product_id,"url": url})                
                 with open(ApiUtility.path_json_picture, "w") as archivo:
-                    archivo.write(json.dumps(datos.append({"id":product_id,"url": url}), indent=None))
+                    archivo.write(json.dumps(datos, indent=None))
                     
             return url
     
