@@ -8,11 +8,13 @@ from io import BytesIO
 import numpy as np
 import hashlib
 import os
+import json
 
 class ApiUtility:
     
-         
-    # marca = "bosch"
+    
+    path_json_picture = 'data_excel/url_pics.json'
+    brands_active =  ['gamo','bellota','urrea']
     # path = f"{Paths.PATH_EXCEL.value}{marca}/{marca}{Excel.TYPE_EXTENSION.value}"
 
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
@@ -235,7 +237,7 @@ class ApiUtility:
             precios = [
                 item["price"] for item in productos_filtrados if item["price"] < precio_mio
             ]
-            link_competencia = productos_filtrados[0]['permalink'] if len(productos_filtrados) is not 0 else '',
+            link_competencia = productos_filtrados[0]['permalink'] if len(productos_filtrados) != 0 else '',
             
             # Actualizar la columna P.COMP según la comparación
             if precios:
@@ -244,8 +246,8 @@ class ApiUtility:
                 # return {}
                 row[Excel.PRECIO_COMPETENCIA.value] = '-'  # Si no hay un precio más bajo, se pone un '-'
                 link_competencia = ''  # Si no hay un precio más bajo, se pone un '-'
-                
-            ###################
+            
+            
             return {
                 
                 "name": row[Excel.NOMBRE_PRODUCTO.value],
@@ -256,7 +258,7 @@ class ApiUtility:
                 # "precio_recomendado": 0,
                 "link_mi_publicacion": publicacion,
                 "Link_competencia_publicacion": link_competencia,
-                "url_img": productos_filtrados[0]['thumbnail'] if len(productos_filtrados) is not 0 else ''   
+                "url_img": row[Excel.MI_URL_IMG.value]
             }
             
         else:
@@ -346,12 +348,15 @@ class ApiUtility:
                         link_publicacion = ApiUtility.obtener_link_publicacion(item)
 
                     all_products.append({
+                        Excel.PRODUCTO_ID.value: item["id"],
                         #"codigo_producto": item["attributes"][-1]["value_name"] if "attributes" in item and item["attributes"] else 0,
                         Excel.CODIGO.value: ApiUtility.get_model_product(item["attributes"]),
                         Excel.NOMBRE_PRODUCTO.value: item["title"],
                         Excel.VENTAS.value: item.get("sold_quantity", 0),
                         Excel.PRECIO.value: item["price"],
-                        Excel.MI_PUBLICACION.value: link_publicacion
+                        Excel.MI_PUBLICACION.value: link_publicacion,
+                        Excel.MI_URL_IMG.value: ApiUtility.get_picture(item["id"]),
+                        
                     })
                 
             # Verifica si hay más resultados
@@ -365,3 +370,47 @@ class ApiUtility:
            
         return  all_products[:limit],brand
          
+    def get_picture(product_id) -> str:
+        
+        url = ''
+        if not os.path.exists(ApiUtility.path_json_picture):
+            url = ApiUtility.get_url_pic(product_id)
+
+            data_products = [
+                {
+                    "id":product_id,
+                    "url": url
+                }
+            ]            
+            with open(ApiUtility.path_json_picture, "w") as archivo:
+                archivo.write(json.dumps(data_products, indent=None))
+                
+        else:
+
+            with open(ApiUtility.path_json_picture, "r") as archivo:
+                datos = json.load(archivo)
+            
+            producto = next((item for item in datos if item["id"] == product_id), None)
+            url = producto['url'] if producto is not None else ApiUtility.get_url_pic(product_id,True, datos)
+            
+        return url 
+          
+    def get_url_pic(product_id,actualizar = False,datos = []):
+        
+        url_api_ml = f"https://api.mercadolibre.com/items/{product_id}"
+        response = requests.get(url_api_ml)
+
+        if response.status_code == 200:
+            data = response.json()
+            url = data["pictures"][0]["url"] if data.get("pictures") else data.get("thumbnail")
+            # para actualizar json
+            if actualizar:
+        
+                datos.append({"id":product_id,"url": url})                
+                with open(ApiUtility.path_json_picture, "w") as archivo:
+                    archivo.write(json.dumps(datos, indent=None))
+                    
+            return url
+    
+        else:
+            return None

@@ -4,18 +4,37 @@ from enums.excel import Excel
 from util.util_api import ApiUtility
 from util.excel_util import ExcelUtility
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
+import requests
 router = APIRouter()
 
+# TO DO agilizar
 @router.get("/actualizar-inventario")
 async def actualizar_inventario(query: str = "all" ):
-
-    name_brands = ['gamo','bellota','urrea']
-    for i in name_brands:
+    
+    for i in ApiUtility.brands_active:
        products,brand =  ApiUtility.actualizar_inventario_ml(i)
        _  = ExcelUtility.create_excel(products,brand)     
-    
+
     return 'echo'
+
+@router.get("/img-search")
+async def get_producto():
+    
+    product_id = 'MLM927519009'
+    url_api_ml = f"https://api.mercadolibre.com/items/{product_id}"
+    response = requests.get(url_api_ml)
+    if response.status_code == 200:
+        data = response.json()
+        return data
+        imagen_url = data["pictures"][0]["url"] if data.get("pictures") else data.get("thumbnail")
+        return {
+            "product_id": product_id,
+            "name": data["title"],
+            "price": data["price"],
+            "imagen_url": imagen_url
+        }
+    else:
+        raise HTTPException(status_code=response.status_code, detail="Producto no encontrado")
 
 @router.get("/check-connection")
 async def check_connection():

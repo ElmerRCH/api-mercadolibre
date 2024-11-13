@@ -1,16 +1,15 @@
 from util.excel_util import ExcelUtility
-
+from util.util_api import ApiUtility
 import asyncio
 import json
 
-name_brands = ['gamo','bellota','urrea']
 
 async def brands_data_prices():
     data_products = []
-     
+    
     while True:
         
-        data_products = map(ExcelUtility.get_product_up, name_brands)
+        data_products = map(ExcelUtility.get_product_up, ApiUtility.brands_active)
         data_products = sorted(list(data_products), key=lambda x: x['productos_con_precios_altos'], reverse=True)
         
         # Paso 3: Guardar el JSON en un archivo
@@ -23,7 +22,7 @@ async def brands_all_products_data():
     
     while True:
         
-        for i in name_brands:
+        for i in ApiUtility.brands_active:
             ExcelUtility.comparar_y_actualizar_precio_poll(i)
   
         await asyncio.sleep(50)

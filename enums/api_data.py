@@ -13,7 +13,7 @@ class Paths(Enum):
 class Excel(Enum):
     
     TYPE_EXTENSION = ".xlsx"
-
+    PRODUCTO_ID = 'ID'
     CANTIDAD = "CANT."
     CODIGO = "CODIGO"
     NOMBRE_PRODUCTO = "PRODUCTO"
@@ -22,6 +22,7 @@ class Excel(Enum):
     PRECIO_COMPETENCIA = "P.COMP"
     PRECIO_COSTO = "P.COSTO"
     MI_PUBLICACION = "PUBLICACION"
+    MI_URL_IMG = "IMG"
 
 
     MARKETPLACE_PRICE = "MARKETPLACE_PRICE"

@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 from util.util_api import ApiUtility
-
 from enums.api_data import Paths,Excel
 from enums.excel import ExcelStruct
 from pandas import DataFrame
@@ -8,6 +7,7 @@ import pandas as pd
 import openpyxl
 import json
 import re
+import os
 
 class ExcelUtility:
     
@@ -26,6 +26,7 @@ class ExcelUtility:
         
         for _, producto in enumerate(productos_filtrados, start=1):
             ws.append([
+                producto[Excel.PRODUCTO_ID.value],
                 0,
                 producto[Excel.CODIGO.value],
                 producto[Excel.NOMBRE_PRODUCTO.value],
@@ -33,12 +34,18 @@ class ExcelUtility:
                 producto[Excel.PRECIO.value],
                 0,
                 0,
-                producto[Excel.MI_PUBLICACION.value]
+                producto[Excel.MI_PUBLICACION.value],
+                producto[Excel.MI_URL_IMG.value]
             ])
-        
+
         # Guardar el archivo Excel
         nombre_archivo = f"{brand}{Excel.TYPE_EXTENSION.value}"
-        wb.save(f"{Paths.PATH_EXCEL.value}{brand}/{brand}{Excel.TYPE_EXTENSION.value}")
+        ruta_directorio = f"{Paths.PATH_EXCEL.value}{brand}"
+        
+        if not os.path.exists(ruta_directorio):
+            os.makedirs(ruta_directorio)
+            
+        wb.save(f"{ruta_directorio}/{brand}{Excel.TYPE_EXTENSION.value}")
 
         return nombre_archivo
     
@@ -90,10 +97,10 @@ class ExcelUtility:
             data = ApiUtility.comparar_y_actualizar_precio(row,brand)
             break
         """
-
+        print('brand')
         with ThreadPoolExecutor() as executor:
            data = list(executor.map(ApiUtility.comparar_y_actualizar_precio, [row for _, row in df.iterrows()],[brand] * len(df)))
-
+        
         data = [obj for obj in data if obj]
 
         with open(f"data_excel/{brand}/{brand}.json", "w") as archivo:
