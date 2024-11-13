@@ -23,9 +23,9 @@ app.include_router(api_ml.router, prefix="/api-ml", tags=["api-ml"])
 @app.get("/")
 async def root(response: Response = Response()):
 
-    name_brands = ['gamo']
+    """name_brands = ['gamo']
     data_products = list(map(ExcelUtility.comparar_y_actualizar_precio_poll, name_brands))
-    
+    """
     return 'activo'
 
 @app.on_event("startup")
