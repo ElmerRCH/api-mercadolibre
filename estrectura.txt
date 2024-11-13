@@ -1,0 +1,26 @@
+data = [
+    
+    "bosch":{
+        "productos_con_precios_altos": 19,
+        "productos_con_precios_bajos": 20,
+        "total": 39
+    }
+
+]
+
+sellers {
+    {
+			"seller_id": 344549261,
+			"seller_name": "FAVELAPROMX"
+		},
+		{
+			"seller_id": 1689066639,
+			"seller_name": "KELVEMX"
+		},
+		{
+			"seller_id": 771779041,
+			"seller_name": "JFLAREN"
+		},
+		{
+    }
+}

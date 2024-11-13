@@ -7,11 +7,13 @@ class Url(Enum):
 class Paths(Enum):
 
     PATH_EXCEL = "data_excel/"
+    PATH_IMG = "img/"
+
 
 class Excel(Enum):
     
     TYPE_EXTENSION = ".xlsx"
-
+    PRODUCTO_ID = 'ID'
     CANTIDAD = "CANT."
     CODIGO = "CODIGO"
     NOMBRE_PRODUCTO = "PRODUCTO"
@@ -19,6 +21,9 @@ class Excel(Enum):
     PRECIO = "PRECIO"
     PRECIO_COMPETENCIA = "P.COMP"
     PRECIO_COSTO = "P.COSTO"
+    MI_PUBLICACION = "PUBLICACION"
+    MI_URL_IMG = "IMG"
+
 
     MARKETPLACE_PRICE = "MARKETPLACE_PRICE"
     NOMBRE_PRODUCTO_ML = "TITLE"
